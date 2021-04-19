@@ -1,0 +1,1 @@
+c:\Qt\5.15.2\msvc2019\bin\windeployqt.exe --release --qmldir c:\Qt\5.15.2\msvc2019\qml FoE_GUI.exe
