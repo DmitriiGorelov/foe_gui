@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>638</width>
-    <height>457</height>
+    <height>484</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_13">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
@@ -125,7 +125,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QLabel" name="label_10">
           <property name="font">
@@ -182,70 +182,86 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Slave Name</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="eAxisName"/>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Slave Name</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>File Name</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="eFileName">
-              <property name="readOnly">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLineEdit" name="eAxisName"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>File Name</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
-            <item>
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>Pass HEX</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="ePassword"/>
-            </item>
-           </layout>
+           <widget class="QLineEdit" name="eFileName">
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Pass HEX</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="bFromSlave">
-              <property name="text">
-               <string>FROM SLAVE</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="bToSlave">
-              <property name="text">
-               <string>TO SLAVE</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLineEdit" name="ePassword"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="bFromSlave">
+            <property name="text">
+             <string>FROM SLAVE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="bToSlave">
+            <property name="text">
+             <string>TO SLAVE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="eFOELoopCounter">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="bFOELoop">
+            <property name="text">
+             <string>Loop</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

@@ -53,6 +53,8 @@ private slots:
 
     void on_bSCPSend_clicked();
 
+    void on_bFOELoop_clicked();
+
 private:
     Ui::MainWindow *ui;
 

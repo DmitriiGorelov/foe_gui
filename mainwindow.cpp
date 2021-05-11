@@ -261,3 +261,12 @@ void MainWindow::on_bSCPSend_clicked()
 
     return;
 }
+
+void MainWindow::on_bFOELoop_clicked()
+{
+    for (uint k=0;k<ui->eFOELoopCounter->text().toUInt(); k++)
+    {
+        on_bFromSlave_clicked();
+        on_bToSlave_clicked();
+    }
+}
