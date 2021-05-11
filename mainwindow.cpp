@@ -16,12 +16,15 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->ePassword->setInputMask("HHHHHHHH;");
+
     QSettings settings;
     settings.beginGroup("FOE Parameters");
     ui->eIPFoE->setText(settings.value("IP PMAS","192.168.35.10").toString());
     ui->eIPHost->setText(settings.value("IP HOST","192.168.35.5").toString());
     ui->eAxisName->setText(settings.value("Slave name","g01").toString());
     ui->eFileName->setText(settings.value("File name","hello.txt").toString());
+    ui->ePassword->setText(settings.value("Password","20000000").toString());
     settings.endGroup();
 
 
@@ -34,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     settings.endGroup();
 
     ui->eSSHpassword->setEchoMode(QLineEdit::Password);
+
 
     connect(&proc, &QProcess::started, this, &MainWindow::sscStarted);
     connect(&proc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(sscFinished(int,QProcess::ExitStatus)));
@@ -68,6 +72,9 @@ int MainWindow::getAxisRef(std::string name)
 bool MainWindow::FOE(foeMode::T mode)
 {
     std::string filename(ui->eFileName->text().toStdString());
+    bool ok(0);
+    int pass=ui->ePassword->text().toUInt(&ok,16);
+    qInfo()<<"pass:" << pass;
 
     int ref=getAxisRef(ui->eAxisName->text().toStdString());
 
@@ -82,6 +89,7 @@ bool MainWindow::FOE(foeMode::T mode)
     in.ucInitialState = 8; // The Ecat state to move to before the upload/download starts.
     in.ucFinalState = 8; // The Ecat state to move to after the upload/download ends.
     in.ucFileSavedInFlash=1; // 0 = Saved in RAM (/tmp), 1 = Saved in Flash (/mnt/jffs/usr)
+    in.ulPassword=pass;
     in.ucDeleteFileAfterDownload=0;
     memset(&in.ucReservedBytes,0,32);
     //memcpy(&(in.ucReservedBytes[0]), filename.c_str(), filename.length()); // file name to upload/download.
@@ -121,7 +129,7 @@ bool MainWindow::FOE(foeMode::T mode)
 
             ui->textEdit->setText(ui->textEdit->toPlainText() + report);
 
-            if (int(outs.pstSlavesErrorID[0].sErrorID)!=0)
+            if (int(outs.pstSlavesErrorID[0].sErrorID)!=0 || outs.ucProgress==0)
                 break;
         }
 
@@ -192,6 +200,7 @@ void MainWindow::on_bFromSlave_clicked()
     settings.beginGroup("FOE Parameters");
     settings.setValue("Slave name",ui->eAxisName->text());
     settings.setValue("File name",ui->eFileName->text());
+    settings.setValue("Password",ui->ePassword->text());
     settings.endGroup();
 
     FOE(foeMode::eFromSlave);
@@ -203,6 +212,7 @@ void MainWindow::on_bToSlave_clicked()
     settings.beginGroup("FOE Parameters");
     settings.setValue("Slave name",ui->eAxisName->text());
     settings.setValue("File name",ui->eFileName->text());
+    settings.setValue("Password",ui->ePassword->text());
     settings.endGroup();
 
     FOE(foeMode::eToSlave);

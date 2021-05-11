@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_12">
+   <layout class="QHBoxLayout" name="horizontalLayout_13">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
@@ -212,6 +212,20 @@
                <bool>false</bool>
               </property>
              </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Pass HEX</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ePassword"/>
             </item>
            </layout>
           </item>
