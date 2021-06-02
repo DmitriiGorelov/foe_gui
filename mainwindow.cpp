@@ -10,9 +10,11 @@
 
 #include "CallBack.h"
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , pi()
 {
     ui->setupUi(this);
 
@@ -61,7 +63,7 @@ int MainWindow::getAxisRef(std::string name)
     strcpy(in.cAxisName, name);
 #endif
     out.usAxisIdx = -1;//DeviceID(); // can be -1 !!!;
-    if (MMC_GetAxisByNameCmd(gConnHndl, &in, &out) != 0)
+    if (pmas()->wrp_MMC_GetAxisByNameCmd(&in, &out) != 0)
     {
         ui->textEdit->setText(ui->textEdit->toPlainText() + "AXIS REF ERROR: " +QString::number(out.usErrorID));
         return -1;
@@ -96,13 +98,13 @@ bool MainWindow::FOE(foeMode::T mode)
 
     MMC_DOWNLOADFOEEX_OUT out;
 
-    if (int res=MMC_DownloadFoEEx(gConnHndl, &in, &out)!=0)
+    if (int res=pmas()->wrp_MMC_DownloadFoEEx(&in, &out)!=0)
     {
         ui->textEdit->setText(ui->textEdit->toPlainText() + "ERROR UPLOAD #" + QString::number(res) + " " + QString(out.usErrorID-65536));
         MMC_RESET_IN inr;
         MMC_RESET_OUT outr;
         inr.ucExecute=1;
-        MMC_ResetAsync(gConnHndl,ref,&inr,&outr);
+        pmas()->wrp_MMC_ResetAsync(ref,&inr,&outr);
         Sleep(100);
         //return false;
     }
@@ -111,7 +113,7 @@ bool MainWindow::FOE(foeMode::T mode)
 
     while (true)
     {
-        if (MMC_GetFoEStatus(gConnHndl,&outs)!=0)
+        if (pmas()->wrp_MMC_GetFoEStatus(&outs)!=0)
         {
             QString report = "FOE STATUS: ERROR " + QString::number(outs.usErrorID);
             qInfo() << report ;
@@ -187,10 +189,7 @@ void MainWindow::on_bConnect_clicked()
     settings.setValue("IP HOST",ui->eIPHost->text());
     settings.endGroup();
 
-    gConnHndl = cConn.ConnectRPCEx(const_cast<char*>(ui->eIPHost->text().toStdString().c_str()), const_cast<char*>(ui->eIPFoE->text().toStdString().c_str()),
-            0x7fffffff, reinterpret_cast<MMC_MB_CLBK>(CallbackFunc));
-
-    cConn.RegisterEventCallback(MMCPP_EMCY,(void*)Emergency_Received) ;
+    pmas()->Connect(ui->eIPHost->text(), ui->eIPFoE->text());
 }
 
 
@@ -269,4 +268,9 @@ void MainWindow::on_bFOELoop_clicked()
         on_bFromSlave_clicked();
         on_bToSlave_clicked();
     }
+}
+
+void MainWindow::on_actionProcess_Image_triggered()
+{
+    pi.show();
 }

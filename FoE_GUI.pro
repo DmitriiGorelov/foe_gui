@@ -13,16 +13,21 @@ QMAKE_CXXFLAGS += /Zc:strictStrings-
 
 SOURCES += \
     CallBack.cpp \
+    Controller.cpp \
     GmasInternals.cpp \
+    formpi.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     CallBack.h \
+    Controller.h \
     GmasInternals.h \
+    formpi.h \
     mainwindow.h
 
 FORMS += \
+    formpi.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -4,7 +4,9 @@
 #include <QMainWindow>
 #include <QProcess>
 
-#include "GmasInternals.h"
+#include "Controller.h"
+
+#include "formpi.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -55,12 +57,13 @@ private slots:
 
     void on_bFOELoop_clicked();
 
-private:
-    Ui::MainWindow *ui;
+    void on_actionProcess_Image_triggered();
 
-    MMC_CONNECT_HNDL gConnHndl ;
-    CMMCConnection cConn ;
+private:
+    Ui::MainWindow *ui;    
 
     QProcess proc;
+
+    FormPI pi;
 };
 #endif // MAINWINDOW_H
