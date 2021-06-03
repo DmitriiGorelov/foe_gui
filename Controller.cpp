@@ -1,8 +1,13 @@
 #include "Controller.h"
 #include "CallBack.h"
 
+
+#include <QDebug>
+
 Controller::Controller()
-    : m_gConnHndl(-1)
+    : cConn()
+    , m_gConnHndl(-1)
+    , m_slaves()
 {
 
 }
@@ -14,18 +19,30 @@ bool Controller::Connect(QString IPHost, QString IP)
 
     cConn.RegisterEventCallback(MMCPP_EMCY,(void*)Emergency_Received) ;
 
+    slavesListUpdate();
+
+    emit onConnect();
+
     return true;
 }
 
 bool Controller::Connected()
 {
-    return getConnHndl() > 0;
+    if (getConnHndl() > 0 && checkMode())
+        return true;
+    else
+        return false;
 }
 
 bool Controller::Simulated()
 {
     static bool value = false;
     return value;
+}
+
+TNames Controller::getSlaves()
+{
+    return m_slaves;
 }
 
 int Controller::wrp_MMC_GetAxisByNameCmd(MMC_AXISBYNAME_IN *pInParam, MMC_AXISBYNAME_OUT *pOutParam, int result)
@@ -239,6 +256,73 @@ int Controller::wrp_MMC_GetPIVarInfoByAlias(MMC_AXIS_REF_HNDL hAxisRef, MMC_GETP
     }
 }
 
+void Controller::slavesListUpdate()
+{
+    m_slaves.clear();
+
+    if (!Connected())
+    {
+        return ;
+    }
+
+    MMC_AXIS_REF_HNDL hAxisRef = 0;
+    MMC_GETCOMMSTATISTICS_OUT CommStatisticsOut;
+    if (0!=wrp_MMC_GetCommStatistics(hAxisRef, &CommStatisticsOut))
+    {
+        qInfo() << "GETCOMMSTATISTICS() returned with internal error";
+        return;
+    }
+    const int nActiveNodes(CommStatisticsOut.usNumOfSlaves);
+
+    MMC_GETAXISNAME_IN pInParam;
+    MMC_GETAXISNAME_OUT pOutParam;
+    for (int i=0; i<nActiveNodes; i++)
+    {
+        pInParam.uiAxisIndex=i;
+        if (0==wrp_GetAxisName(&pInParam, &pOutParam))
+        {
+            QString name(pOutParam.pAxesName);
+            m_slaves.append(name);
+        }
+        else
+            break;
+    }
+}
+
+bool Controller::checkMode()
+{
+    bool result = true;
+    MMC_GET_GMASOP_MODE_OUT Opmode;
+    Opmode.ucResult = 0;
+    memset(&Opmode, 0, sizeof(Opmode));
+
+    int rc = wrp_MMC_GetGMASOperationMode(&Opmode);
+    if (rc < 0)
+    {
+        qInfo() << "ERROR MMC_GetGMASOperationMode " << Opmode.usErrorID;
+        result = false;
+    }
+    else
+    {
+        if (Opmode.ucResult != 0) // GMAS is not in operational mode.
+        {
+            qInfo() << "GMAS was NOT in operational mode...";
+
+            MMC_SET_GMAS_OP_IN Inparam;
+            MMC_SET_GMAS_OP_OUT Outparam;
+            Inparam.ucDummy = 1;
+            rc = wrp_MMC_ChangeToOperationMode(&Outparam);
+            if (rc != 0)
+            {
+                qInfo() << "operational mode set ERROR " << Outparam.usErrorID;
+                result = false;
+            }
+            qInfo() << "GMAS mode changed to OP";
+        }
+    }
+    return result;
+}
+
 int Controller::getAxisRef(QString name)
 {
     MMC_AXISBYNAME_IN in;
@@ -246,7 +330,7 @@ int Controller::getAxisRef(QString name)
 
     strcpy_s(in.cAxisName, name.toStdString().c_str());
 
-    if (pmas()->wrp_MMC_GetAxisByNameCmd(&in, &out) != 0)
+    if (wrp_MMC_GetAxisByNameCmd(&in, &out) != 0)
     {
         return -1;
     }

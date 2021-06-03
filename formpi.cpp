@@ -30,13 +30,22 @@ FormPI::FormPI(QWidget *parent)
     //ui->tWrite->installEventFilter(this);
     connect(ui->tWrite, &QTableWidget::itemChanged, this, &FormPI::on_ItemChanged);
     connect(&timerIn, &QTimer::timeout, this, &FormPI::on_Timer);
-    timerIn.start(1000);
+    //timerIn.start(1000);
 
 }
 
 FormPI::~FormPI()
 {
     delete ui;
+}
+
+void FormPI::PmasConnect()
+{
+    if (!pmas()->Connected())
+        return;
+
+    ui->eName->addItems(pmas()->getSlaves());
+    timerIn.start(1000);
 }
 
 
@@ -155,71 +164,13 @@ void FormPI::clear()
     m_itemsOut.clear();
 }
 
-bool FormPI::CheckControllerMode()
-{
-    bool result = true;
-    MMC_GET_GMASOP_MODE_OUT Opmode;
-    Opmode.ucResult = 0;
-    memset(&Opmode, 0, sizeof(Opmode));
-
-    int rc = pmas()->wrp_MMC_GetGMASOperationMode(&Opmode);
-    if (rc < 0)
-    {
-        qInfo() << "ERROR MMC_GetGMASOperationMode " << Opmode.usErrorID;
-        result = false;
-    }
-    else
-    {
-        if (Opmode.ucResult != 0) // GMAS is not in operational mode.
-        {
-            qInfo() << "GMAS was NOT in operational mode...";
-
-            MMC_SET_GMAS_OP_IN Inparam;
-            MMC_SET_GMAS_OP_OUT Outparam;
-            Inparam.ucDummy = 1;
-            rc = pmas()->wrp_MMC_ChangeToOperationMode(&Outparam);
-            if (rc != 0)
-            {
-                qInfo() << "operational mode set ERROR " << Outparam.usErrorID;
-                result = false;
-            }
-            qInfo() << "GMAS mode changed to OP";
-        }
-    }
-    return result;
-}
-
 void FormPI::showEvent(QShowEvent *event)
 {
     ui->eName->clear();
 
-    if (!CheckControllerMode())
+    if (!pmas()->Connected())
     {
         return ;
-    }
-
-    MMC_AXIS_REF_HNDL hAxisRef = 0;
-    MMC_GETCOMMSTATISTICS_OUT CommStatisticsOut;
-    int rc1 = pmas()->wrp_MMC_GetCommStatistics(hAxisRef, &CommStatisticsOut);
-    if (rc1 < 0)
-    {
-        qInfo() << "GETCOMMSTATISTICS() returned with internal error";
-        return;
-    }
-    const int nActiveNodes(CommStatisticsOut.usNumOfSlaves);
-
-    MMC_GETAXISNAME_IN pInParam;
-    MMC_GETAXISNAME_OUT pOutParam;
-    for (int i=0; i<nActiveNodes; i++)
-    {
-        pInParam.uiAxisIndex=i;
-        if (0==pmas()->wrp_GetAxisName(&pInParam, &pOutParam))
-        {
-            QString name(pOutParam.pAxesName);
-            ui->eName->addItem(name);
-        }
-        else
-            break;
     }
 }
 

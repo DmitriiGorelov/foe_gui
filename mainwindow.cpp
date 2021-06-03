@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&proc, &QProcess::readyReadStandardError, this, &MainWindow::sscReadyReadStandardError);
     connect(&proc, &QProcess::readyReadStandardOutput, this, &MainWindow::sscReadyReadStandardOutput);
     connect(&proc, &QProcess::errorOccurred, this, &MainWindow::sscErrorOccurred);
+
+    connect(pmas(), &Controller::onConnect, this, &MainWindow::onConnect);
 }
 
 MainWindow::~MainWindow()
@@ -140,6 +142,12 @@ bool MainWindow::FOE(foeMode::T mode)
     }
 
     return true;
+}
+
+void MainWindow::onConnect()
+{
+    ui->bConnect->setEnabled(false);
+    pi.PmasConnect();
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)

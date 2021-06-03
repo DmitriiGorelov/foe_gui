@@ -22,11 +22,11 @@ public:
     explicit FormPI(QWidget *parent = nullptr);
     ~FormPI();
 
+    void PmasConnect();
+
 protected:
     void clear();
     void update();
-
-    bool CheckControllerMode();
 
     QString readPIVar(bool out, int varOffset, int varType);
     void writePIVar(int varOffset, int varType, QString value);

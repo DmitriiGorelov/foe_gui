@@ -1,7 +1,11 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <QObject>
+
 #include <QString>
+#include <QList>
+
 
 #include "GmasInternals.h"
 
@@ -9,19 +13,26 @@ class Controller;
 
 Controller* pmas();
 
-class Controller
+typedef QList<QString> TNames;
+
+class Controller : public QObject
 {
+    Q_OBJECT
     friend Controller* pmas();
 protected:
-    Controller();
-
+    Controller();        
 public:
+
+signals:
+    void onConnect();
 
     ~Controller() {}
 
     bool Connect(QString IPHost, QString IP);
     bool Connected();
     bool Simulated();
+
+    TNames getSlaves();
 
     MMC_CONNECT_HNDL& getConnHndl() // TODO: make it  private!!! call wrp_ functions to access API, call singleton() to access controller!!!
     {
@@ -75,10 +86,15 @@ public:
                     IN MMC_GETPIVARINFOBYALIAS_IN* pInParam,
                     OUT MMC_GETPIVARINFOBYALIAS_OUT* pOutParam,
                     int result = 0);
+protected:
+    void slavesListUpdate();
+    bool checkMode();
 
 private:
     CMMCConnection cConn ;
     MMC_CONNECT_HNDL m_gConnHndl;
+
+    TNames m_slaves;
 };
 
 

@@ -34,6 +34,8 @@ private:
     bool FOE(foeMode::T mode);
 
 private slots:
+    void onConnect();
+
     void sscFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void sscReadyReadStandardError();
     void sscReadyReadStandardOutput();
