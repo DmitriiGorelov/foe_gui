@@ -26,6 +26,8 @@ public:
 signals:
     void onConnect();
 
+public:
+
     ~Controller() {}
 
     bool Connect(QString IPHost, QString IP);

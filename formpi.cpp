@@ -164,16 +164,6 @@ void FormPI::clear()
     m_itemsOut.clear();
 }
 
-void FormPI::showEvent(QShowEvent *event)
-{
-    ui->eName->clear();
-
-    if (!pmas()->Connected())
-    {
-        return ;
-    }
-}
-
 int StrToIOType(QString value)
 {
     if (value=="SHORT")      return ePI_SIGNED_SHORT;

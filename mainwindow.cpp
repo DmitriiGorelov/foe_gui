@@ -24,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
     settings.beginGroup("FOE Parameters");
     ui->eIPFoE->setText(settings.value("IP PMAS","192.168.35.10").toString());
     ui->eIPHost->setText(settings.value("IP HOST","192.168.35.5").toString());
-    ui->eAxisName->setText(settings.value("Slave name","g01").toString());
     ui->eFileName->setText(settings.value("File name","hello.txt").toString());
     ui->ePassword->setText(settings.value("Password","20000000").toString());
     settings.endGroup();
@@ -80,7 +79,7 @@ bool MainWindow::FOE(foeMode::T mode)
     int pass=ui->ePassword->text().toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
 
-    int ref=getAxisRef(ui->eAxisName->text().toStdString());
+    int ref=getAxisRef(ui->eName->currentText().toStdString());
 
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
@@ -148,6 +147,7 @@ void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
     pi.PmasConnect();
+    ui->eName->addItems(pmas()->getSlaves());
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -205,7 +205,6 @@ void MainWindow::on_bFromSlave_clicked()
 {
     QSettings settings;
     settings.beginGroup("FOE Parameters");
-    settings.setValue("Slave name",ui->eAxisName->text());
     settings.setValue("File name",ui->eFileName->text());
     settings.setValue("Password",ui->ePassword->text());
     settings.endGroup();
@@ -217,7 +216,6 @@ void MainWindow::on_bToSlave_clicked()
 {
     QSettings settings;
     settings.beginGroup("FOE Parameters");
-    settings.setValue("Slave name",ui->eAxisName->text());
     settings.setValue("File name",ui->eFileName->text());
     settings.setValue("Password",ui->ePassword->text());
     settings.endGroup();

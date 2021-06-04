@@ -5,7 +5,8 @@
 #include <QDebug>
 
 Controller::Controller()
-    : cConn()
+    : QObject(nullptr)
+    , cConn()
     , m_gConnHndl(-1)
     , m_slaves()
 {
@@ -28,7 +29,7 @@ bool Controller::Connect(QString IPHost, QString IP)
 
 bool Controller::Connected()
 {
-    if (getConnHndl() > 0 && checkMode())
+    if (getConnHndl())
         return true;
     else
         return false;

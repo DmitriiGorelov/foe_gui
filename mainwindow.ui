@@ -202,7 +202,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="eAxisName"/>
+             <widget class="QComboBox" name="eName"/>
             </item>
            </layout>
           </item>
@@ -216,11 +216,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="eFileName">
-              <property name="readOnly">
-               <bool>false</bool>
-              </property>
-             </widget>
+             <widget class="QLineEdit" name="eFileName"/>
             </item>
            </layout>
           </item>

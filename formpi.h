@@ -31,8 +31,6 @@ protected:
     QString readPIVar(bool out, int varOffset, int varType);
     void writePIVar(int varOffset, int varType, QString value);
 
-    void showEvent(QShowEvent *event) override;
-
 private slots:
     void on_bUpdate_clicked();
     void on_Timer();    
