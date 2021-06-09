@@ -36,6 +36,7 @@ public:
     bool Simulated();
 
     TSlaveNames getSlaveNames();
+    TSlaveNames getSlaveEIndexes();
 
     MMC_CONNECT_HNDL& getConnHndl() // TODO: make it  private!!! call wrp_ functions to access API, call singleton() to access controller!!!
     {
@@ -98,8 +99,9 @@ private:
     CMMCConnection cConn ;
     MMC_CONNECT_HNDL m_gConnHndl;
 
+    TSlaveNames m_slaveEIndexes;
     TSlaveNames m_slaveNames;
-    TSlaves m_slaves;
+    TSlaves m_slaveNamesToEIndexes;
 };
 
 

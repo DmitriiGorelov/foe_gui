@@ -8,8 +8,9 @@ Controller::Controller()
     : QObject(nullptr)
     , cConn()
     , m_gConnHndl(-1)
+    , m_slaveEIndexes()
     , m_slaveNames()
-    , m_slaves()
+    , m_slaveNamesToEIndexes()
 {
 
 }
@@ -44,11 +45,12 @@ bool Controller::Simulated()
 
 TSlaveNames Controller::getSlaveNames()
 {
-    for (auto& it: m_slaveNames)
-    {
-        qInfo() << it;
-    }
     return m_slaveNames;
+}
+
+TSlaveNames Controller::getSlaveEIndexes()
+{
+    return m_slaveEIndexes;
 }
 
 int Controller::GetAxisEthercatIDByName(const QString& inParam, int result)
@@ -59,7 +61,7 @@ int Controller::GetAxisEthercatIDByName(const QString& inParam, int result)
     }
     if (!Simulated())
     {
-        for (auto it= m_slaves.begin(); it!=m_slaves.end(); it++)
+        for (auto it= m_slaveNamesToEIndexes.begin(); it!=m_slaveNamesToEIndexes.end(); it++)
         {
             if (inParam==it.key())
             {
@@ -312,8 +314,9 @@ void Controller::slavesListUpdate()
         if (0==wrp_GetAxisName(&pInParam, &pOutParam))
         {
             QString name(pOutParam.pAxesName);
+            m_slaveEIndexes.append(QString::number(i)); // will not be needful when m_slaveNamesToEIndexes below is correctly saved
             m_slaveNames.append(name);
-            m_slaves[name]=i;
+            m_slaveNamesToEIndexes[QString::number(i)]=i; // i is used termporarily. Must be found a way to save Ethercat Pos instead of Idx/ref
         }
         else
             break;
