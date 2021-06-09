@@ -263,3 +263,13 @@ void MainWindow::on_actionProcess_Image_triggered()
 {
     pi.show();
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    pmas()->ResetCommDiagnostics();
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    pmas()->ResetCommStatistics();
+}

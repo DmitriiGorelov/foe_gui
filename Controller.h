@@ -90,6 +90,9 @@ public:
                     IN MMC_GETPIVARINFOBYALIAS_IN* pInParam,
                     OUT MMC_GETPIVARINFOBYALIAS_OUT* pOutParam,
                     int result = 0);
+    bool ResetCommDiagnostics();
+    bool ResetCommStatistics();
+
 protected:
     void slavesListUpdate();
     bool checkMode();
@@ -97,6 +100,7 @@ protected:
 private:
     CMMCConnection cConn ;
     MMC_CONNECT_HNDL m_gConnHndl;
+    CMMCNetwork network;
 
     TSlaveNames m_slaveNames;
     TSlaves m_slaves;

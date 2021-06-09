@@ -8,6 +8,7 @@ Controller::Controller()
     : QObject(nullptr)
     , cConn()
     , m_gConnHndl(-1)
+    , network()
     , m_slaveNames()
     , m_slaves()
 {
@@ -20,6 +21,8 @@ bool Controller::Connect(QString IPHost, QString IP)
             0x7fffffff, reinterpret_cast<MMC_MB_CLBK>(CallbackFunc));
 
     cConn.RegisterEventCallback(MMCPP_EMCY,(void*)Emergency_Received) ;
+
+    network.SetConnHndl(m_gConnHndl);
 
     slavesListUpdate();
 
@@ -283,6 +286,50 @@ int Controller::wrp_MMC_GetPIVarInfoByAlias(MMC_AXIS_REF_HNDL hAxisRef, MMC_GETP
     {
         //pOutParam->ulValue = ; //used as default value
         return result;
+    }
+}
+
+bool Controller::ResetCommDiagnostics()
+{
+    if (!Connected())
+    {
+        return false;
+    }
+    if (!Simulated())
+    {
+        MMC_RESETCOMMDIAGNOSTICS_OUT pOutParam;
+        memset(&pOutParam, 0, sizeof(pOutParam));
+        network.ResetCommDiagnostics(pOutParam);
+
+        qInfo() << pOutParam.usErrorID;
+        return 0==pOutParam.usErrorID;
+    }
+    else
+    {
+        //pOutParam->ulValue = ; //used as default value
+        return true;
+    }
+}
+
+bool Controller::ResetCommStatistics()
+{
+    if (!Connected())
+    {
+        return false;
+    }
+    if (!Simulated())
+    {
+        MMC_RESETCOMMSTATISTICS_OUT pOutParam;
+        memset(&pOutParam, 0, sizeof(pOutParam));
+        network.ResetCommStatistics(pOutParam);
+
+        qInfo() << pOutParam.usErrorID;
+        return 0==pOutParam.usErrorID;
+    }
+    else
+    {
+        //pOutParam->ulValue = ; //used as default value
+        return true;
     }
 }
 
