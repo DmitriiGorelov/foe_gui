@@ -8,6 +8,7 @@ Controller::Controller()
     : QObject(nullptr)
     , cConn()
     , m_gConnHndl(-1)
+    , m_slaveNames()
     , m_slaves()
 {
 
@@ -41,9 +42,37 @@ bool Controller::Simulated()
     return value;
 }
 
-TNames Controller::getSlaves()
+TSlaveNames Controller::getSlaveNames()
 {
-    return m_slaves;
+    for (auto& it: m_slaveNames)
+    {
+        qInfo() << it;
+    }
+    return m_slaveNames;
+}
+
+int Controller::GetAxisEthercatIDByName(const QString& inParam, int result)
+{
+    if (!Connected())
+    {
+        return -1;
+    }
+    if (!Simulated())
+    {
+        for (auto it= m_slaves.begin(); it!=m_slaves.end(); it++)
+        {
+            if (inParam==it.key())
+            {
+                return it.value();
+            }
+        }
+        return -1;
+    }
+    else
+    {
+        // outParam shall already keep default value, we do not need to change it in simulation mode.
+        return result;
+    }
 }
 
 int Controller::wrp_MMC_GetAxisByNameCmd(MMC_AXISBYNAME_IN *pInParam, MMC_AXISBYNAME_OUT *pOutParam, int result)
@@ -259,7 +288,7 @@ int Controller::wrp_MMC_GetPIVarInfoByAlias(MMC_AXIS_REF_HNDL hAxisRef, MMC_GETP
 
 void Controller::slavesListUpdate()
 {
-    m_slaves.clear();
+    m_slaveNames.clear();
 
     if (!Connected())
     {
@@ -283,7 +312,8 @@ void Controller::slavesListUpdate()
         if (0==wrp_GetAxisName(&pInParam, &pOutParam))
         {
             QString name(pOutParam.pAxesName);
-            m_slaves.append(name);
+            m_slaveNames.append(name);
+            m_slaves[name]=i;
         }
         else
             break;

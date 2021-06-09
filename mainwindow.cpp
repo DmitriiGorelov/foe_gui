@@ -54,24 +54,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-int MainWindow::getAxisRef(std::string name)
-{
-    MMC_AXISBYNAME_IN in;
-    MMC_AXISBYNAME_OUT out;
-#ifdef WIN32
-    strcpy_s(in.cAxisName, name.c_str());
-#else
-    strcpy(in.cAxisName, name);
-#endif
-    out.usAxisIdx = -1;//DeviceID(); // can be -1 !!!;
-    if (pmas()->wrp_MMC_GetAxisByNameCmd(&in, &out) != 0)
-    {
-        ui->textEdit->setText(ui->textEdit->toPlainText() + "AXIS REF ERROR: " +QString::number(out.usErrorID));
-        return -1;
-    }
-    return out.usAxisIdx;
-}
-
 bool MainWindow::FOE(foeMode::T mode)
 {
     std::string filename(ui->eFileName->text().toStdString());
@@ -79,7 +61,8 @@ bool MainWindow::FOE(foeMode::T mode)
     int pass=ui->ePassword->text().toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
 
-    int ref=getAxisRef(ui->eName->currentText().toStdString());
+    int ref=pmas()->GetAxisEthercatIDByName(ui->eName->currentText());
+    qInfo() << "axisName=" <<ui->eName->currentText() << ", ID=" << ref;
 
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
@@ -147,7 +130,7 @@ void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
     pi.PmasConnect();
-    ui->eName->addItems(pmas()->getSlaves());
+    ui->eName->addItems(pmas()->getSlaveNames());
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)

@@ -4,7 +4,7 @@
 #include <QObject>
 
 #include <QString>
-#include <QList>
+#include <QMap>
 
 
 #include "GmasInternals.h"
@@ -13,7 +13,8 @@ class Controller;
 
 Controller* pmas();
 
-typedef QList<QString> TNames;
+typedef QList<QString> TSlaveNames;
+typedef QMap<QString, int> TSlaves; // key is axis name, value is axis index in ethercat order (NOT axis ref!)
 
 class Controller : public QObject
 {
@@ -34,7 +35,7 @@ public:
     bool Connected();
     bool Simulated();
 
-    TNames getSlaves();
+    TSlaveNames getSlaveNames();
 
     MMC_CONNECT_HNDL& getConnHndl() // TODO: make it  private!!! call wrp_ functions to access API, call singleton() to access controller!!!
     {
@@ -42,6 +43,7 @@ public:
     }
 
     int getAxisRef(QString name);
+    int GetAxisEthercatIDByName(const QString& inParam, int result = -1); // result is a default value for case of simulated mode.
 
     int wrp_MMC_GetAxisByNameCmd(
                     IN MMC_AXISBYNAME_IN* pInParam,
@@ -96,7 +98,8 @@ private:
     CMMCConnection cConn ;
     MMC_CONNECT_HNDL m_gConnHndl;
 
-    TNames m_slaves;
+    TSlaveNames m_slaveNames;
+    TSlaves m_slaves;
 };
 
 

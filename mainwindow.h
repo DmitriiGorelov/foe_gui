@@ -29,8 +29,6 @@ public:
     ~MainWindow();
 
 private:
-    int getAxisRef(std::string name);
-
     bool FOE(foeMode::T mode);
 
 private slots:

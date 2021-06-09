@@ -44,7 +44,7 @@ void FormPI::PmasConnect()
     if (!pmas()->Connected())
         return;
 
-    ui->eName->addItems(pmas()->getSlaves());
+    ui->eName->addItems(pmas()->getSlaveNames());
     timerIn.start(1000);
 }
 
