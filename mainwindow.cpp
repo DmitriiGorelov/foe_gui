@@ -276,6 +276,10 @@ void MainWindow::on_bSCPSend_clicked()
     QString dest_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" <<
         source_path << username+"@"+ip+":"+dest_path;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -325,6 +329,10 @@ void MainWindow::on_bSCPRead_clicked()
     QString source_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
         dest_path +"/"+ remote_file_name;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -346,6 +354,10 @@ void MainWindow::on_eListOfRemoteFiles_clicked()
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << "-ls" << username+"@"+ip+":"+source_path;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -370,6 +382,10 @@ void MainWindow::on_bSCPDelete_clicked()
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
     arguments << "-sftp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+"\"rm -rf"+source_path+"/"+remote_file_name+"\"";
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
