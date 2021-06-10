@@ -69,18 +69,15 @@ bool MainWindow::FOE(foeMode::T mode)
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
     memcpy(&in.pcFileName, filename.c_str(), filename.length()); // file name to upload/download.
-    ui->textEdit->setText(ui->textEdit->toPlainText() + "FileName: " +in.pcFileName);
     in.pwSlaveId[0] = ref; // list of slaves IDs to be executed FoE on.
     in.ucSlavesNum=1; // number of slaves to be executed FoE on.
     in.ucOperation=mode; // 1 = FROM DEVICE , 2 = TO DEVICE
-    ui->textEdit->setText(ui->textEdit->toPlainText() + "mode: " + QString::number((int)mode));
     in.ucInitialState = 8; // The Ecat state to move to before the upload/download starts.
     in.ucFinalState = 8; // The Ecat state to move to after the upload/download ends.
     in.ucFileSavedInFlash=1; // 0 = Saved in RAM (/tmp), 1 = Saved in Flash (/mnt/jffs/usr)
     in.ulPassword=pass;
     in.ucDeleteFileAfterDownload=0;
     memset(&in.ucReservedBytes,0,32);
-    //memcpy(&(in.ucReservedBytes[0]), filename.c_str(), filename.length()); // file name to upload/download.
 
     MMC_DOWNLOADFOEEX_OUT out;
 
