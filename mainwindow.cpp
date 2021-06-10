@@ -97,6 +97,8 @@ bool MainWindow::FOE(foeMode::T mode)
 
     MMC_GETFOESTATUS_OUT outs;
 
+    ui->textEdit->setText(ui->textEdit->toPlainText() +"\r\n");
+
     while (true)
     {
         if (pmas()->wrp_MMC_GetFoEStatus(&outs)!=0)
@@ -115,7 +117,7 @@ bool MainWindow::FOE(foeMode::T mode)
 
             qInfo() << report;
 
-            ui->textEdit->setText(ui->textEdit->toPlainText() + report);
+            ui->textEdit->setText(ui->textEdit->toPlainText() + report+"\r\n");
 
             if (int(outs.pstSlavesErrorID[0].sErrorID)!=0 || outs.ucProgress==0)
                 break;
@@ -269,13 +271,12 @@ void MainWindow::on_bSCPSend_clicked()
     QStringList arguments;
     QString source_path = ui->eSourceFile->text();
     QString username = ui->eSSHUserName->text();
+    QString pass = ui->eSSHpassword->text();
     QString ip = ui->eIPSCP->text();
     QString dest_path = ui->eTargetFolder->text();
-    arguments << "-scp" << "-pw" << "user" << "-P" << "22" <<
+    arguments << "-scp" << "-pw" << pass << "-P" << "22" <<
         source_path << username+"@"+ip+":"+dest_path;
     proc.start(program , arguments);
-
-    return;
 }
 
 void MainWindow::on_bFOELoop_clicked()
@@ -319,13 +320,12 @@ void MainWindow::on_bSCPRead_clicked()
     QString dest_path = ui->eDestDir->text();
     QString remote_file_name = ui->eRemoteFile->currentText();
     QString username = ui->eSSHUserName->text();
+    QString pass = ui->eSSHpassword->text();
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
-    arguments << "-scp" << "-pw" << "user" << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
+    arguments << "-scp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
         dest_path +"/"+ remote_file_name;
     proc.start(program , arguments);
-
-    return;
 }
 
 void MainWindow::on_bSaveFile_clicked()
@@ -342,10 +342,33 @@ void MainWindow::on_eListOfRemoteFiles_clicked()
     QString program = "pscp";
     QStringList arguments;
     QString username = ui->eSSHUserName->text();
+    QString pass = ui->eSSHpassword->text();
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
-    arguments << "-scp" << "-pw" << "user" << "-P" << "22" << "-ls" << username+"@"+ip+":"+source_path;
+    arguments << "-scp" << "-pw" << pass << "-P" << "22" << "-ls" << username+"@"+ip+":"+source_path;
     proc.start(program , arguments);
+}
 
-    return;
+void MainWindow::on_bSCPDelete_clicked()
+{
+    m_action=eActions::aSCPRead;
+
+    QSettings settings;
+    settings.beginGroup("SCP Parameters");
+    settings.setValue("SSH User Name",ui->eSSHUserName->text());
+    settings.setValue("SSH Password",ui->eSSHpassword->text());
+    settings.setValue("Target folder",ui->eTargetFolder->text());
+    settings.setValue("Dest path",ui->eDestDir->text());
+    settings.endGroup();
+
+    QString program = "pscp";
+    QStringList arguments;
+    QString dest_path = ui->eDestDir->text();
+    QString remote_file_name = ui->eRemoteFile->currentText();
+    QString username = ui->eSSHUserName->text();
+    QString pass = ui->eSSHpassword->text();
+    QString ip = ui->eIPSCP->text();
+    QString source_path = ui->eTargetFolder->text();
+    arguments << "-sftp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+"\"rm -rf"+source_path+"/"+remote_file_name+"\"";
+    proc.start(program , arguments);
 }

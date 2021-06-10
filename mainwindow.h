@@ -78,6 +78,8 @@ private slots:
 
     void on_eListOfRemoteFiles_clicked();
 
+    void on_bSCPDelete_clicked();
+
     private:
     Ui::MainWindow *ui;    
 
