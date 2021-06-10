@@ -24,6 +24,15 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+        enum class eActions {
+            aUnknown=0,
+            aSCPSend=1,
+            aSCPRead=2,
+            aSCPListRemoteFiles=3,
+            aFOESend=4,
+            aFOERead=5,
+        };
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -63,11 +72,19 @@ private slots:
 
     void on_pushButton_2_clicked();
 
-private:
+    void on_bSCPRead_clicked();
+
+    void on_bSaveFile_clicked();
+
+    void on_eListOfRemoteFiles_clicked();
+
+    private:
     Ui::MainWindow *ui;    
 
     QProcess proc;
 
     FormPI pi;
+
+    eActions m_action;
 };
 #endif // MAINWINDOW_H

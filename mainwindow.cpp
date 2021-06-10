@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , pi()
+    , m_action(eActions::aUnknown)
 {
     ui->setupUi(this);
 
@@ -35,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->eSSHpassword->setText(settings.value("SSH Password","user").toString());
     ui->eTargetFolder->setText(settings.value("Target folder","/mnt/jffs/usr/").toString());
     ui->eSourceFile->setText(settings.value("Source path","c:/hello.txt").toString());
+    ui->eDestDir->setText(settings.value("Dest path", "d:/").toString());
     settings.endGroup();
 
     ui->eSSHpassword->setEchoMode(QLineEdit::Password);
@@ -153,8 +155,30 @@ void MainWindow::sscReadyReadStandardError()
 void MainWindow::sscReadyReadStandardOutput()
 {
     QString StdOut = proc.readAllStandardOutput();  //Reads standard output
-    QString StdError = proc.readAllStandardError(); // Reads standard error
-    ui->textEdit->setText(ui->textEdit->toPlainText() + "OUT: <" + StdOut + "> ERR: <" + StdError+">");
+    QString StdError = proc.readAllStandardError(); // Reads standard error    
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n");
+    switch (m_action)
+    {
+        case eActions::aSCPListRemoteFiles:
+        {
+            ui->eRemoteFile->clear();
+            QStringList s=StdOut.split("\r\n");
+            for (auto& it : s)
+            {
+                QStringList items=it.split(" ");
+                if (items.size()>0 && items.back().size()>2)
+                {
+                    ui->eRemoteFile->addItem(items.back());
+                    qInfo() << items.back();
+                    ui->textEdit->setText(ui->textEdit->toPlainText() + items.back()+"\r\n");
+                }
+            }
+            break;
+        }
+        default:
+            ui->textEdit->setText(ui->textEdit->toPlainText()+StdOut);
+            break;
+    }
 }
 
 void MainWindow::sscErrorOccurred(QProcess::ProcessError error)
@@ -186,6 +210,7 @@ void MainWindow::on_bConnect_clicked()
 
 void MainWindow::on_bFromSlave_clicked()
 {
+    m_action=eActions::aFOERead;
     QSettings settings;
     settings.beginGroup("FOE Parameters");
     settings.setValue("File name",ui->eFileName->text());
@@ -197,6 +222,7 @@ void MainWindow::on_bFromSlave_clicked()
 
 void MainWindow::on_bToSlave_clicked()
 {
+    m_action=eActions::aFOESend;
     QSettings settings;
     settings.beginGroup("FOE Parameters");
     settings.setValue("File name",ui->eFileName->text());
@@ -208,7 +234,7 @@ void MainWindow::on_bToSlave_clicked()
 
 void MainWindow::on_bOpenFile_clicked()
 {
-    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), "/home","Config_Files(*.*)") ;
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), "","Config_Files(*.*)") ;
     ui->eSourceFile->setText(filepath);
     QFileInfo fi(filepath);
     ui->eFileName->setText(fi.fileName());
@@ -229,6 +255,8 @@ void MainWindow::on_checkBox_clicked(bool checked)
 
 void MainWindow::on_bSCPSend_clicked()
 {
+    m_action=eActions::aSCPSend;
+
     QSettings settings;
     settings.beginGroup("SCP Parameters");
     settings.setValue("SSH User Name",ui->eSSHUserName->text());
@@ -272,4 +300,52 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pushButton_2_clicked()
 {
     pmas()->ResetCommStatistics();
+}
+
+void MainWindow::on_bSCPRead_clicked()
+{
+    m_action=eActions::aSCPRead;
+
+    QSettings settings;
+    settings.beginGroup("SCP Parameters");
+    settings.setValue("SSH User Name",ui->eSSHUserName->text());
+    settings.setValue("SSH Password",ui->eSSHpassword->text());
+    settings.setValue("Target folder",ui->eTargetFolder->text());
+    settings.setValue("Dest path",ui->eDestDir->text());
+    settings.endGroup();
+
+    QString program = "pscp";
+    QStringList arguments;
+    QString dest_path = ui->eDestDir->text();
+    QString remote_file_name = ui->eRemoteFile->currentText();
+    QString username = ui->eSSHUserName->text();
+    QString ip = ui->eIPSCP->text();
+    QString source_path = ui->eTargetFolder->text();
+    arguments << "-scp" << "-pw" << "user" << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
+        dest_path +"/"+ remote_file_name;
+    proc.start(program , arguments);
+
+    return;
+}
+
+void MainWindow::on_bSaveFile_clicked()
+{
+    QString path = QFileDialog::getExistingDirectory(this, tr("Existing dir to save file")) ;
+    ui->eDestDir->setText(path);
+    QFileInfo fi(path);
+}
+
+void MainWindow::on_eListOfRemoteFiles_clicked()
+{
+    m_action=eActions::aSCPListRemoteFiles;
+
+    QString program = "pscp";
+    QStringList arguments;
+    QString username = ui->eSSHUserName->text();
+    QString ip = ui->eIPSCP->text();
+    QString source_path = ui->eTargetFolder->text();
+    arguments << "-scp" << "-pw" << "user" << "-P" << "22" << "-ls" << username+"@"+ip+":"+source_path;
+    proc.start(program , arguments);
+
+    return;
 }
