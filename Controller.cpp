@@ -362,50 +362,6 @@ bool Controller::ResetSystemErrors()
     }
 }
 
-bool Controller::ResetCommDiagnostics()
-{
-    if (!Connected())
-    {
-        return false;
-    }
-    if (!Simulated())
-    {
-        MMC_RESETCOMMDIAGNOSTICS_OUT pOutParam;
-        memset(&pOutParam, 0, sizeof(pOutParam));
-        network.ResetCommDiagnostics(pOutParam);
-
-        qInfo() << pOutParam.usErrorID;
-        return 0==pOutParam.usErrorID;
-    }
-    else
-    {
-        //pOutParam->ulValue = ; //used as default value
-        return true;
-    }
-}
-
-bool Controller::ResetCommStatistics()
-{
-    if (!Connected())
-    {
-        return false;
-    }
-    if (!Simulated())
-    {
-        MMC_RESETCOMMSTATISTICS_OUT pOutParam;
-        memset(&pOutParam, 0, sizeof(pOutParam));
-        network.ResetCommStatistics(pOutParam);
-
-        qInfo() << pOutParam.usErrorID;
-        return 0==pOutParam.usErrorID;
-    }
-    else
-    {
-        //pOutParam->ulValue = ; //used as default value
-        return true;
-    }
-}
-
 void Controller::slavesListUpdate()
 {
     m_slaveNames.clear();
