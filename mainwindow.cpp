@@ -69,18 +69,15 @@ bool MainWindow::FOE(foeMode::T mode)
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
     memcpy(&in.pcFileName, filename.c_str(), filename.length()); // file name to upload/download.
-    ui->textEdit->setText(ui->textEdit->toPlainText() + "FileName: " +in.pcFileName);
     in.pwSlaveId[0] = ref; // list of slaves IDs to be executed FoE on.
     in.ucSlavesNum=1; // number of slaves to be executed FoE on.
     in.ucOperation=mode; // 1 = FROM DEVICE , 2 = TO DEVICE
-    ui->textEdit->setText(ui->textEdit->toPlainText() + "mode: " + QString::number((int)mode));
     in.ucInitialState = 8; // The Ecat state to move to before the upload/download starts.
     in.ucFinalState = 8; // The Ecat state to move to after the upload/download ends.
     in.ucFileSavedInFlash=1; // 0 = Saved in RAM (/tmp), 1 = Saved in Flash (/mnt/jffs/usr)
     in.ulPassword=pass;
     in.ucDeleteFileAfterDownload=0;
     memset(&in.ucReservedBytes,0,32);
-    //memcpy(&(in.ucReservedBytes[0]), filename.c_str(), filename.length()); // file name to upload/download.
 
     MMC_DOWNLOADFOEEX_OUT out;
 
@@ -134,7 +131,7 @@ void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
     pi.PmasConnect();
-    ui->eName->addItems(pmas()->getSlaveNames());
+    ui->eName->addItems(pmas()->getSlaveEIndexes());
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -276,6 +273,10 @@ void MainWindow::on_bSCPSend_clicked()
     QString dest_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" <<
         source_path << username+"@"+ip+":"+dest_path;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -325,6 +326,10 @@ void MainWindow::on_bSCPRead_clicked()
     QString source_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
         dest_path +"/"+ remote_file_name;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -346,6 +351,10 @@ void MainWindow::on_eListOfRemoteFiles_clicked()
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << "-ls" << username+"@"+ip+":"+source_path;
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
@@ -370,6 +379,10 @@ void MainWindow::on_bSCPDelete_clicked()
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
     arguments << "-sftp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+"\"rm -rf"+source_path+"/"+remote_file_name+"\"";
+
+    ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
     proc.start(program , arguments);
 }
 
