@@ -7,7 +7,7 @@
 Controller::Controller()
     : QObject(nullptr)
     , cConn()
-    , m_gConnHndl(-1)
+    , m_gConnHndl(0)
     , network()
     , m_slaveNames()
     , m_slaves()
@@ -325,6 +325,33 @@ bool Controller::ResetCommStatistics()
 
         qInfo() << pOutParam.usErrorID;
         return 0==pOutParam.usErrorID;
+    }
+    else
+    {
+        //pOutParam->ulValue = ; //used as default value
+        return true;
+    }
+}
+
+bool Controller::ResetSystemErrors()
+{
+    if (!Connected())
+    {
+        return false;
+    }
+    if (!Simulated())
+    {
+        MMC_RESETSYSTEM_IN pInParam;
+        MMC_RESETSYSTEM_OUT pOutParam;
+        memset(&pOutParam, 0, sizeof(pOutParam));
+        if (0!=MMC_ResetSystem(getConnHndl(),&pInParam, &pOutParam))
+        {
+            qInfo() << pOutParam.sErrorID;
+            return false;
+        }
+
+        qInfo() << pOutParam.sErrorID;
+        return 0==pOutParam.sErrorID;
     }
     else
     {
