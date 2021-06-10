@@ -80,6 +80,8 @@ private slots:
 
     void on_bSCPDelete_clicked();
 
+    void on_bResetSystem_clicked();
+
     private:
     Ui::MainWindow *ui;    
 

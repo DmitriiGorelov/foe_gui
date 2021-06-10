@@ -91,8 +91,10 @@ public:
                     IN MMC_GETPIVARINFOBYALIAS_IN* pInParam,
                     OUT MMC_GETPIVARINFOBYALIAS_OUT* pOutParam,
                     int result = 0);
+
     bool ResetCommDiagnostics();
     bool ResetCommStatistics();
+    bool ResetSystemErrors();
 
 protected:
     void slavesListUpdate();

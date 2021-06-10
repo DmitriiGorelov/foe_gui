@@ -372,3 +372,8 @@ void MainWindow::on_bSCPDelete_clicked()
     arguments << "-sftp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+"\"rm -rf"+source_path+"/"+remote_file_name+"\"";
     proc.start(program , arguments);
 }
+
+void MainWindow::on_bResetSystem_clicked()
+{
+    pmas()->ResetSystemErrors();
+}
