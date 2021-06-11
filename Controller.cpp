@@ -9,9 +9,7 @@ Controller::Controller()
     , cConn()
     , m_gConnHndl(0)
     , network()
-    , m_slaveEIndexes()
     , m_slaveNames()
-    , m_slaveNamesToEIndexes()
 {
 
 }
@@ -51,11 +49,6 @@ TSlaveNames Controller::getSlaveNames()
     return m_slaveNames;
 }
 
-TSlaveNames Controller::getSlaveEIndexes()
-{
-    return m_slaveEIndexes;
-}
-
 int Controller::GetAxisEthercatIDByName(const QString& inParam, int result)
 {
     if (!Connected())
@@ -64,14 +57,24 @@ int Controller::GetAxisEthercatIDByName(const QString& inParam, int result)
     }
     if (!Simulated())
     {
-        for (auto it= m_slaveNamesToEIndexes.begin(); it!=m_slaveNamesToEIndexes.end(); it++)
+        int ref=getAxisRef(inParam);
+
+        MMC_READBOOLPARAMETER_IN sReadParamIn;   // IN parameter for MMC_ReadBoolParameter
+        MMC_READBOOLPARAMETER_OUT sReadParamOut; // OUT parameter for MMC_ReadBoolParameter
+
+        sReadParamIn.eParameterNumber = (MMC_PARAMETER_LIST_ENUM)MMC_DRIVE_ID_PARAM;  // Set parameter to read – DRIVE_ID is the EtherCAT slave position
+        sReadParamIn.iParameterArrIndex = 0; //Set 0
+        sReadParamIn.ucEnable = 1; //Enable
+
+        // This function read a parameter
+        //     sNameOut.usAxisIdx – Axis ID that we read by MMC_GetAxisByNameCmd
+        if (0 != MMC_ReadBoolParameter(getConnHndl(), ref, &sReadParamIn, &sReadParamOut))
         {
-            if (inParam==it.key())
-            {
-                return it.value();
-            }
+            qInfo() << "ERROR - MMC_ReadBoolParameter failed" << endl;
+            return -1;
         }
-        return -1;
+
+        return sReadParamOut.lValue;
     }
     else
     {
@@ -388,9 +391,7 @@ void Controller::slavesListUpdate()
         if (0==wrp_GetAxisName(&pInParam, &pOutParam))
         {
             QString name(pOutParam.pAxesName);
-            m_slaveEIndexes.append(QString::number(i)); // will not be needful when m_slaveNamesToEIndexes below is correctly saved
             m_slaveNames.append(name);
-            m_slaveNamesToEIndexes[QString::number(i)]=i; // i is used termporarily. Must be found a way to save Ethercat Pos instead of Idx/ref
         }
         else
             break;

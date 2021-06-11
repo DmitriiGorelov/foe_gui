@@ -131,7 +131,7 @@ void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
     pi.PmasConnect();
-    ui->eName->addItems(pmas()->getSlaveEIndexes());
+    ui->eName->addItems(pmas()->getSlaveNames());
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
