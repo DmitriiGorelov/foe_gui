@@ -63,13 +63,14 @@ bool MainWindow::FOE(foeMode::T mode)
     int pass=ui->ePassword->text().toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
 
-    int ref=pmas()->GetAxisEthercatIDByName(ui->eName->currentText());
-    qInfo() << "axisName=" <<ui->eName->currentText() << ", ID=" << ref;
+    int ref=pmas()->getAxisRef(ui->eName->currentText());
+    int ePos=pmas()->GetAxisEthercatIDByName(ui->eName->currentText());
+    qInfo() << "axisName=" <<ui->eName->currentText() << ", ePos=" << ePos << ", ref=" << ref;
 
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
     memcpy(&in.pcFileName, filename.c_str(), filename.length()); // file name to upload/download.
-    in.pwSlaveId[0] = ref; // list of slaves IDs to be executed FoE on.
+    in.pwSlaveId[0] = ePos; // list of slaves IDs to be executed FoE on.
     in.ucSlavesNum=1; // number of slaves to be executed FoE on.
     in.ucOperation=mode; // 1 = FROM DEVICE , 2 = TO DEVICE
     in.ucInitialState = 8; // The Ecat state to move to before the upload/download starts.
@@ -89,7 +90,7 @@ bool MainWindow::FOE(foeMode::T mode)
         inr.ucExecute=1;
         pmas()->wrp_MMC_ResetAsync(ref,&inr,&outr);
         Sleep(100);
-        //return false;
+        return false;
     }
 
     MMC_GETFOESTATUS_OUT outs;
@@ -98,7 +99,7 @@ bool MainWindow::FOE(foeMode::T mode)
 
     while (true)
     {
-        if (pmas()->wrp_MMC_GetFoEStatus(&outs)!=0)
+        if (0!=pmas()->wrp_MMC_GetFoEStatus(&outs))
         {
             QString report = "FOE STATUS: ERROR " + QString::number(outs.usErrorID);
             qInfo() << report ;
@@ -117,7 +118,9 @@ bool MainWindow::FOE(foeMode::T mode)
             ui->textEdit->setText(ui->textEdit->toPlainText() + report+"\r\n");
 
             if (int(outs.pstSlavesErrorID[0].sErrorID)!=0 || outs.ucProgress==0)
+            {                
                 break;
+            }
         }
 
         Sleep(100);
@@ -136,6 +139,31 @@ void MainWindow::onConnect()
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    switch (m_action)
+    {
+        case eActions::aSCPReadTemp:
+        {
+            if (exitCode==0)
+            {
+                qInfo()<< "READY";
+
+                //QString fname = QFileDialog::getOpenFileName(this);
+                QFile file("D:/tmp/SCPTemp.txt");
+
+                file.open(QFile::ReadOnly | QFile::Text);
+
+                QTextStream ReadFile(&file);
+                ui->textEdit->setText(ui->textEdit->toPlainText() +ReadFile.readAll());
+
+                return;
+            }
+            break;
+        }
+        default:
+            //ui->textEdit->setText(ui->textEdit->toPlainText()+StdOut);
+            break;
+    }
+
     qDebug() << "Finished: " << exitCode;
 }
 
@@ -216,7 +244,11 @@ void MainWindow::on_bFromSlave_clicked()
     settings.setValue("Password",ui->ePassword->text());
     settings.endGroup();
 
-    FOE(foeMode::eFromSlave);
+    if (FOE(foeMode::eFromSlave))
+    {
+        m_action=eActions::aSCPReadTemp;
+        ReadFromPMAS("D:/tmp", ui->eFileName->text(), "SCPTemp.txt");
+    }
 }
 
 void MainWindow::on_bToSlave_clicked()
@@ -304,10 +336,8 @@ void MainWindow::on_pushButton_2_clicked()
     pmas()->ResetCommStatistics();
 }
 
-void MainWindow::on_bSCPRead_clicked()
+void MainWindow::ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name)
 {
-    m_action=eActions::aSCPRead;
-
     QSettings settings;
     settings.beginGroup("SCP Parameters");
     settings.setValue("SSH User Name",ui->eSSHUserName->text());
@@ -318,19 +348,23 @@ void MainWindow::on_bSCPRead_clicked()
 
     QString program = "pscp";
     QStringList arguments;
-    QString dest_path = ui->eDestDir->text();
-    QString remote_file_name = ui->eRemoteFile->currentText();
     QString username = ui->eSSHUserName->text();
     QString pass = ui->eSSHpassword->text();
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
-        dest_path +"/"+ remote_file_name;
+        dest_path +"/"+ local_file_name;
 
     ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
     qInfo() << program << " " << arguments.join(" ");
 
     proc.start(program , arguments);
+}
+
+void MainWindow::on_bSCPRead_clicked()
+{
+    m_action=eActions::aSCPRead;
+    ReadFromPMAS(ui->eDestDir->text(), ui->eRemoteFile->currentText(), ui->eRemoteFile->currentText());
 }
 
 void MainWindow::on_bSaveFile_clicked()

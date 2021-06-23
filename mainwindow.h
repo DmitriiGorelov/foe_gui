@@ -31,6 +31,7 @@ class MainWindow : public QMainWindow
             aSCPListRemoteFiles=3,
             aFOESend=4,
             aFOERead=5,
+            aSCPReadTemp=6,
         };
 
 public:
@@ -39,6 +40,7 @@ public:
 
 private:
     bool FOE(foeMode::T mode);
+    void ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
 
 private slots:
     void onConnect();

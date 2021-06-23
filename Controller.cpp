@@ -23,6 +23,8 @@ bool Controller::Connect(QString IPHost, QString IP)
 
     network.SetConnHndl(m_gConnHndl);
 
+    qInfo() << "Connected!";
+
     slavesListUpdate();
 
     emit onConnect();
@@ -373,6 +375,8 @@ void Controller::slavesListUpdate()
     {
         return ;
     }
+
+    qInfo() << "Call for GETCOMMSTATISTICS...";
 
     MMC_AXIS_REF_HNDL hAxisRef = 0;
     MMC_GETCOMMSTATISTICS_OUT CommStatisticsOut;
