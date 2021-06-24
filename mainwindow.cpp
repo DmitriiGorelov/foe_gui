@@ -19,14 +19,42 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->ePassword->setInputMask("HHHHHHHH;");
+
+    ui->ePasswordTo->setInputMask("HHHHHHHH;");
+    ui->ePasswordTo_2->setInputMask("HHHHHHHH;");
+    ui->ePasswordTo_3->setInputMask("HHHHHHHH;");
+    ui->ePasswordTo_4->setInputMask("HHHHHHHH;");
+    ui->ePasswordTo_5->setInputMask("HHHHHHHH;");
+    ui->ePasswordFrom->setInputMask("HHHHHHHH;");
+    ui->ePasswordFrom_2->setInputMask("HHHHHHHH;");
+    ui->ePasswordFrom_3->setInputMask("HHHHHHHH;");
+    ui->ePasswordFrom_4->setInputMask("HHHHHHHH;");
+    ui->ePasswordFrom_5->setInputMask("HHHHHHHH;");
 
     QSettings settings;
     settings.beginGroup("FOE Parameters");
     ui->eIPFoE->setText(settings.value("IP PMAS","192.168.35.10").toString());
-    ui->eIPHost->setText(settings.value("IP HOST","192.168.35.5").toString());
-    ui->eFileName->setText(settings.value("File name","hello.txt").toString());
-    ui->ePassword->setText(settings.value("Password","20000000").toString());
+    ui->eIPHost->setText(settings.value("IP HOST","192.168.35.5").toString());    
+    ui->eFileNameTo->setText(settings.value("File name to","hello.txt").toString());
+    ui->eFileNameTo_2->setText(settings.value("File name to 2","hello.txt").toString());
+    ui->eFileNameTo_3->setText(settings.value("File name to 3","hello.txt").toString());
+    ui->eFileNameTo_4->setText(settings.value("File name to 4","hello.txt").toString());
+    ui->eFileNameTo_5->setText(settings.value("File name to 5","hello.txt").toString());
+    ui->ePasswordTo->setText(settings.value("Password to","20000000").toString());
+    ui->ePasswordTo_2->setText(settings.value("Password to 2","20000000").toString());
+    ui->ePasswordTo_3->setText(settings.value("Password to 3","20000000").toString());
+    ui->ePasswordTo_4->setText(settings.value("Password to 4","20000000").toString());
+    ui->ePasswordTo_5->setText(settings.value("Password to 5","20000000").toString());
+    ui->eFileNameFrom->setText(settings.value("File name from","hello.txt").toString());
+    ui->eFileNameFrom_2->setText(settings.value("File name from 2","hello.txt").toString());
+    ui->eFileNameFrom_3->setText(settings.value("File name from 3","hello.txt").toString());
+    ui->eFileNameFrom_4->setText(settings.value("File name from 4","hello.txt").toString());
+    ui->eFileNameFrom_5->setText(settings.value("File name from 5","hello.txt").toString());
+    ui->ePasswordFrom->setText(settings.value("Password from","20000000").toString());
+    ui->ePasswordFrom_2->setText(settings.value("Password from 2","20000000").toString());
+    ui->ePasswordFrom_3->setText(settings.value("Password from 3","20000000").toString());
+    ui->ePasswordFrom_4->setText(settings.value("Password from 4","20000000").toString());
+    ui->ePasswordFrom_5->setText(settings.value("Password from 5","20000000").toString());
     settings.endGroup();
 
 
@@ -56,16 +84,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::FOE(foeMode::T mode)
+bool MainWindow::FOE(QString slave, foeMode::T mode, QString fileName, QString password)
 {
-    std::string filename(ui->eFileName->text().toStdString());
+    std::string filename(fileName.toStdString());
     bool ok(0);
-    int pass=ui->ePassword->text().toUInt(&ok,16);
+    int pass=password.toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
 
-    int ref=pmas()->getAxisRef(ui->eName->currentText());
-    int ePos=pmas()->GetAxisEthercatIDByName(ui->eName->currentText());
-    qInfo() << "axisName=" <<ui->eName->currentText() << ", ePos=" << ePos << ", ref=" << ref;
+    int ref=pmas()->getAxisRef(slave);
+    int ePos=pmas()->GetAxisEthercatIDByName(slave);
+    qInfo() << "axisName=" <<slave << ", ePos=" << ePos << ", ref=" << ref;
 
     MMC_DOWNLOADFOEEX_IN in;
     memset(&in.pcFileName,0,256);
@@ -84,7 +112,7 @@ bool MainWindow::FOE(foeMode::T mode)
 
     if (int res=pmas()->wrp_MMC_DownloadFoEEx(&in, &out)!=0)
     {
-        ui->textEdit->setText(ui->textEdit->toPlainText() + "ERROR UPLOAD #" + QString::number(res) + " " + QString(out.usErrorID-65536));
+        ui->textEdit->setText(ui->textEdit->toPlainText() + "ERROR UPLOAD #" + QString::number(res) + " " + QString::number(out.usErrorID-65536));
         MMC_RESET_IN inr;
         MMC_RESET_OUT outr;
         inr.ucExecute=1;
@@ -134,7 +162,7 @@ void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
     pi.PmasConnect();
-    ui->eName->addItems(pmas()->getSlaveNames());
+    ui->eSlaveName->addItems(pmas()->getSlaveNames());
 }
 
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -240,14 +268,14 @@ void MainWindow::on_bFromSlave_clicked()
     m_action=eActions::aFOERead;
     QSettings settings;
     settings.beginGroup("FOE Parameters");
-    settings.setValue("File name",ui->eFileName->text());
-    settings.setValue("Password",ui->ePassword->text());
+    settings.setValue("File name from",ui->eFileNameFrom->text());
+    settings.setValue("Password from",ui->ePasswordFrom->text());
     settings.endGroup();
 
-    if (FOE(foeMode::eFromSlave))
+    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom->text(), ui->ePasswordFrom->text()));
     {
         m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileName->text(), "SCPTemp.txt");
+        ReadFromPMAS("D:/tmp", ui->eFileNameFrom->text(), "SCPTemp.txt");
     }
 }
 
@@ -256,11 +284,11 @@ void MainWindow::on_bToSlave_clicked()
     m_action=eActions::aFOESend;
     QSettings settings;
     settings.beginGroup("FOE Parameters");
-    settings.setValue("File name",ui->eFileName->text());
-    settings.setValue("Password",ui->ePassword->text());
+    settings.setValue("File name to",ui->eFileNameTo->text());
+    settings.setValue("Password to",ui->ePasswordTo->text());
     settings.endGroup();
 
-    FOE(foeMode::eToSlave);
+    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo->text(), ui->ePasswordTo->text());
 }
 
 void MainWindow::on_bOpenFile_clicked()
@@ -268,7 +296,7 @@ void MainWindow::on_bOpenFile_clicked()
     QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), "","Config_Files(*.*)") ;
     ui->eSourceFile->setText(filepath);
     QFileInfo fi(filepath);
-    ui->eFileName->setText(fi.fileName());
+    //ui->eFileNameTo->setText(fi.fileName());
 }
 
 void MainWindow::on_bTextClear_clicked()
@@ -423,4 +451,116 @@ void MainWindow::on_bSCPDelete_clicked()
 void MainWindow::on_bResetSystem_clicked()
 {
     pmas()->ResetSystemErrors();
+}
+
+void MainWindow::on_bFromSlave_2_clicked()
+{
+    m_action=eActions::aFOERead;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from 2",ui->eFileNameFrom_2->text());
+    settings.setValue("Password from 2",ui->ePasswordFrom_2->text());
+    settings.endGroup();
+
+    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_2->text(), ui->ePasswordFrom_2->text()));
+    {
+        m_action=eActions::aSCPReadTemp;
+        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_2->text(), "SCPTemp.txt");
+    }
+}
+
+void MainWindow::on_bToSlave_2_clicked()
+{
+    m_action=eActions::aFOESend;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 2",ui->eFileNameTo_2->text());
+    settings.setValue("Password to 2",ui->ePasswordTo_2->text());
+    settings.endGroup();
+
+    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_2->text(), ui->ePasswordTo_2->text());
+}
+
+void MainWindow::on_bToSlave_3_clicked()
+{
+    m_action=eActions::aFOESend;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 3",ui->eFileNameTo_3->text());
+    settings.setValue("Password to 3",ui->ePasswordTo_3->text());
+    settings.endGroup();
+
+    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_3->text(), ui->ePasswordTo_3->text());
+}
+
+void MainWindow::on_bToSlave_4_clicked()
+{
+    m_action=eActions::aFOESend;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 4",ui->eFileNameTo_4->text());
+    settings.setValue("Password to 4",ui->ePasswordTo_4->text());
+    settings.endGroup();
+
+    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_4->text(), ui->ePasswordTo_4->text());
+}
+
+void MainWindow::on_bToSlave_5_clicked()
+{
+    m_action=eActions::aFOESend;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 5",ui->eFileNameTo_5->text());
+    settings.setValue("Password to 5",ui->ePasswordTo_5->text());
+    settings.endGroup();
+
+    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_5->text(), ui->ePasswordTo_5->text());
+}
+
+void MainWindow::on_bFromSlave_3_clicked()
+{
+    m_action=eActions::aFOERead;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from 3",ui->eFileNameFrom_3->text());
+    settings.setValue("Password from 3",ui->ePasswordFrom_3->text());
+    settings.endGroup();
+
+    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_3->text(), ui->ePasswordFrom_3->text()));
+    {
+        m_action=eActions::aSCPReadTemp;
+        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_3->text(), "SCPTemp.txt");
+    }
+}
+
+void MainWindow::on_bFromSlave_4_clicked()
+{
+    m_action=eActions::aFOERead;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from 4",ui->eFileNameFrom_4->text());
+    settings.setValue("Password from 4",ui->ePasswordFrom_4->text());
+    settings.endGroup();
+
+    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_4->text(), ui->ePasswordFrom_4->text()));
+    {
+        m_action=eActions::aSCPReadTemp;
+        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_4->text(), "SCPTemp.txt");
+    }
+}
+
+void MainWindow::on_bFromSlave_5_clicked()
+{
+    m_action=eActions::aFOERead;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from 5",ui->eFileNameFrom_5->text());
+    settings.setValue("Password from 5",ui->ePasswordFrom_5->text());
+    settings.endGroup();
+
+    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_5->text(), ui->ePasswordFrom_5->text()));
+    {
+        m_action=eActions::aSCPReadTemp;
+        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_5->text(), "SCPTemp.txt");
+    }
 }

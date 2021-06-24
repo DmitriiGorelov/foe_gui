@@ -39,7 +39,7 @@ public:
     ~MainWindow();
 
 private:
-    bool FOE(foeMode::T mode);
+    bool FOE(QString slave, foeMode::T mode, QString fileName, QString password);
     void ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
 
 private slots:
@@ -83,6 +83,22 @@ private slots:
     void on_bSCPDelete_clicked();
 
     void on_bResetSystem_clicked();
+
+    void on_bFromSlave_2_clicked();
+
+    void on_bToSlave_2_clicked();
+
+    void on_bToSlave_3_clicked();
+
+    void on_bToSlave_4_clicked();
+
+    void on_bToSlave_5_clicked();
+
+    void on_bFromSlave_3_clicked();
+
+    void on_bFromSlave_4_clicked();
+
+    void on_bFromSlave_5_clicked();
 
     private:
     Ui::MainWindow *ui;    
