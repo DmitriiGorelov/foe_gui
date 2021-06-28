@@ -165,6 +165,16 @@ void MainWindow::onConnect()
     ui->eSlaveName->addItems(pmas()->getSlaveNames());
 }
 
+void MainWindow::fileToMemo(QString path)
+{
+    QFile file(path);
+
+    file.open(QFile::ReadOnly | QFile::Text);
+
+    QTextStream ReadFile(&file);
+    ui->textEdit->setText(ui->textEdit->toPlainText() +ReadFile.readAll());
+}
+
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     switch (m_action)
@@ -173,17 +183,15 @@ void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
         {
             if (exitCode==0)
             {
-                qInfo()<< "READY";
-
-                //QString fname = QFileDialog::getOpenFileName(this);
-                QFile file("D:/tmp/SCPTemp.txt");
-
-                file.open(QFile::ReadOnly | QFile::Text);
-
-                QTextStream ReadFile(&file);
-                ui->textEdit->setText(ui->textEdit->toPlainText() +ReadFile.readAll());
-
-                return;
+                fileToMemo("D:/tmp/SCPTemp.txt");
+            }
+            break;
+        }
+        case eActions::aSCPRead:
+        {
+            if (exitCode==0)
+            {
+                fileToMemo(ui->eDestDir->text()+"/"+ ui->eRemoteFile->currentText());
             }
             break;
         }
@@ -422,7 +430,7 @@ void MainWindow::on_eListOfRemoteFiles_clicked()
 
 void MainWindow::on_bSCPDelete_clicked()
 {
-    m_action=eActions::aSCPRead;
+    m_action=eActions::aSCPDelete;
 
     QSettings settings;
     settings.beginGroup("SCP Parameters");

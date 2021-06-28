@@ -32,6 +32,7 @@ class MainWindow : public QMainWindow
             aFOESend=4,
             aFOERead=5,
             aSCPReadTemp=6,
+            aSCPDelete=7,
         };
 
 public:
@@ -41,6 +42,8 @@ public:
 private:
     bool FOE(QString slave, foeMode::T mode, QString fileName, QString password);
     void ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
+
+    void fileToMemo(QString path);
 
 private slots:
     void onConnect();
