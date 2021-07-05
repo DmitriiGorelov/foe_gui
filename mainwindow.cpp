@@ -302,8 +302,11 @@ void MainWindow::on_bToSlave_clicked()
 void MainWindow::on_bOpenFile_clicked()
 {
     QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), "","Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
     ui->eSourceFile->setText(filepath);
-    QFileInfo fi(filepath);
+    //QFileInfo fi(filepath);
     //ui->eFileNameTo->setText(fi.fileName());
 }
 
