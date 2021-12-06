@@ -40,7 +40,9 @@
 #define EOE_LEN 		512
 #define DRV_PORT		5001
 
-namespace global_namespace {
+int HexToInt(const char* s);
+
+//namespace global_namespace {
 
 		namespace cAxisType {
 			enum T {
@@ -252,4 +254,6 @@ namespace gmas {
 		int Homing;
 	};
 	}
-}
+
+
+//}

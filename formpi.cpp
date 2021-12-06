@@ -39,7 +39,7 @@ FormPI::~FormPI()
     delete ui;
 }
 
-void FormPI::PmasConnect()
+void FormPI::PmasConnected()
 {
     if (!pmas()->Connected())
         return;

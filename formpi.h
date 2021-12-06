@@ -22,7 +22,7 @@ public:
     explicit FormPI(QWidget *parent = nullptr);
     ~FormPI();
 
-    void PmasConnect();
+    void PmasConnected();
 
 protected:
     void clear();

@@ -3,22 +3,18 @@
 
 #include <QMainWindow>
 #include <QProcess>
+#include <QSharedPointer>
+#include <QVector>
 
 #include "Controller.h"
+#include "enums.h"
 
 #include "formpi.h"
+#include "formsdo.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-
-namespace foeMode
-{
-    enum T{
-        eFromSlave=1,
-        eToSlave=2,
-    };
-}
 
 class MainWindow : public QMainWindow
 {
@@ -31,8 +27,10 @@ class MainWindow : public QMainWindow
             aSCPListRemoteFiles=3,
             aFOESend=4,
             aFOERead=5,
-            aSCPReadTemp=6,
+            //aSCPReadTemp=6,
             aSCPDelete=7,
+            aSDOSend=8,
+            aSDORead=9,
         };
 
 public:
@@ -40,10 +38,15 @@ public:
     ~MainWindow();
 
 private:
-    bool FOE(QString slave, foeMode::T mode, QString fileName, QString password);
-    void ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
+    bool FOE(QString slave, eFOEDirection::E mode, QString filePath, QString password);
+    void SCPFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
+    void SCPToPMAS(const QString& fpath);
+
+    bool SDO(QString slave, eSDODirection::E mode, QString filePath, QString password);
 
     void fileToMemo(QString path);
+
+    void report(QString text);
 
 private slots:
     void onConnect();
@@ -103,13 +106,78 @@ private slots:
 
     void on_bFromSlave_5_clicked();
 
-    private:
+    void on_actionSDO_triggered();
+
+    void on_bSDOToSlave_clicked();
+
+    void on_bToOpenFile_clicked();
+
+    void on_bToSCP_clicked();
+
+    void on_bToOpenFile_2_clicked();
+
+    void on_bToOpenFile_3_clicked();
+
+    void on_bToOpenFile_4_clicked();
+
+    void on_bToOpenFile_5_clicked();
+
+
+    void on_bFromSCP_clicked();
+
+
+    void on_bFromSCP_2_clicked();
+
+    void on_bFromSCP_3_clicked();
+
+    void on_bFromSCP_4_clicked();
+
+    void on_bFromSCP_5_clicked();
+
+    void on_bSDOToSlave_2_clicked();
+
+    void on_bSDOToSlave_3_clicked();
+
+    void on_bSDOToSlave_4_clicked();
+
+    void on_bSDOToSlave_5_clicked();
+
+    void on_bSDOFromSlave_clicked();
+
+    void on_bSDOFromSlave_2_clicked();
+
+    void on_bSDOFromSlave_3_clicked();
+
+    void on_bSDOFromSlave_4_clicked();
+
+    void on_bSDOFromSlave_5_clicked();
+
+    void on_bSDOToOpenFile_clicked();
+
+    void on_bSDOToOpenFile_2_clicked();
+
+    void on_bSDOToOpenFile_3_clicked();
+
+    void on_bSDOToOpenFile_4_clicked();
+
+    void on_bSDOToOpenFile_5_clicked();
+
+    void on_pushButton_3_clicked();
+
+    void on_pushButton_4_clicked();
+
+private:
+    void TakeFOEFromSlave(const QString& slave, const QString& fname, const QString& password);
+
+private:
     Ui::MainWindow *ui;    
 
     QProcess proc;
 
     FormPI pi;
+    QVector<QSharedPointer<FormSDO> > sdos;
 
     eActions m_action;
+    QString m_ProcessResultFile;
 };
 #endif // MAINWINDOW_H

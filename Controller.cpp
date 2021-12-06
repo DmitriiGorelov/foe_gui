@@ -1,6 +1,7 @@
 #include "Controller.h"
 #include "CallBack.h"
 
+#include <QString>
 
 #include <QDebug>
 
@@ -296,6 +297,71 @@ int Controller::wrp_MMC_GetPIVarInfoByAlias(MMC_AXIS_REF_HNDL hAxisRef, MMC_GETP
     }
 }
 
+int Controller::wrp_MMC_SendSdoExCmd(
+            IN MMC_AXIS_REF_HNDL hAxisRef,
+            IN MMC_SENDSDOEX_IN* pInParam,
+            OUT MMC_SENDSDOEX_OUT* pOutParam,
+            int result)
+{
+    if (!Connected())
+    {
+        pOutParam->usErrorID = -2000;
+        return -1;
+    }
+    if (!Simulated())
+    {
+        memset(pOutParam, 0, sizeof(*pOutParam));
+        int res = MMC_SendSdoExCmd(getConnHndl(), static_cast<MMC_AXIS_REF_HNDL>(hAxisRef), pInParam, pOutParam);
+        qInfo() << "gmasref_" << QString::number(hAxisRef) << " Request: ucService " << QString(pInParam->ucService) <<
+            ", usIndex " << QString::number(pInParam->usIndex) << ", ucSubIndex " << QString::number(pInParam->ucSubIndex) <<
+            ", DataSize" << QString::number(pInParam->ucDataLength) <<
+            ", lData " << QString::number(pInParam->uData.lData) <<
+            ", Data " << QByteArray(reinterpret_cast<char*>(pOutParam->uData.pData),80).toHex();
+        qInfo() << "gmasref_" << QString::number(hAxisRef) << " Reponse: res " << res << ", usErrorID " << QString::number(pOutParam->usErrorID) <<
+            ", lData " << QString::number(pOutParam->uData.lData) <<
+            ", Data " << QByteArray(reinterpret_cast<char*>(pOutParam->uData.pData),80).toHex();
+        return res;
+    }
+    else
+    {
+        //pOutParam->ulValue = ; //used as default value
+        return result;
+    }
+}
+
+
+bool Controller::SendSDO(const QString& axisName, tuData& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction)
+{
+    if (!pmas()->Connected())
+        return false;
+
+    int ref = getAxisRef(axisName);
+    if (ref < 0)
+        return false;
+
+    MMC_SENDSDOEX_IN sin;
+    MMC_SENDSDOEX_OUT sout;
+    sin.uData = data;
+    sin.ucDataLength = dataSize;
+    sin.usIndex = address;
+    sin.ucSubIndex = subAddress;
+    sin.ucService = direction; // Write
+
+    if (pmas()->wrp_MMC_SendSdoExCmd(ref, &sin, &sout) != 0)
+    {
+        if (reportIfError)
+            qInfo() << sout.usErrorID;
+        return false;
+    }
+
+    if (direction==eSDODirection::READ)
+    {
+        memcpy(data.pData, sout.uData.pData, NODE_ASCII_ARRAY_MAX_LENGTH);
+    }
+
+    return true;
+}
+
 bool Controller::ResetCommDiagnostics()
 {
     if (!Connected())
@@ -389,7 +455,7 @@ void Controller::slavesListUpdate()
 
     MMC_GETAXISNAME_IN pInParam;
     MMC_GETAXISNAME_OUT pOutParam;
-    for (int i=0; i<nActiveNodes; i++)
+    for (int i=0; i<=nActiveNodes; i++) // by some reason <= works . Otherwise the last slave is not in the list
     {
         pInParam.uiAxisIndex=i;
         if (0==wrp_GetAxisName(&pInParam, &pOutParam))

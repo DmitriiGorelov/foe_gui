@@ -1,10 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QDebug>
-#include <QSettings>
 #include <sstream>
 #include <iostream>
+
+#include <QDebug>
+#include <QSettings>
 #include <QFileDialog>
 #include <QtWidgets>
 
@@ -15,10 +16,14 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , pi()
+    , sdos()
     , m_action(eActions::aUnknown)
+    , m_ProcessResultFile("")
 {
     ui->setupUi(this);
 
+    ui->eSDOAddressHeader->setInputMask("HHHH;");
+    ui->eSDOAddressBody->setInputMask("HHHH;");
 
     ui->ePasswordTo->setInputMask("HHHHHHHH;");
     ui->ePasswordTo_2->setInputMask("HHHHHHHH;");
@@ -31,10 +36,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->ePasswordFrom_4->setInputMask("HHHHHHHH;");
     ui->ePasswordFrom_5->setInputMask("HHHHHHHH;");
 
+    ui->eSDOPasswordTo->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordTo_2->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordTo_3->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordTo_4->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordTo_5->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordFrom->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordFrom_2->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordFrom_3->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordFrom_4->setInputMask("HHHHHHHH;");
+    ui->eSDOPasswordFrom_5->setInputMask("HHHHHHHH;");
+
     QSettings settings;
-    settings.beginGroup("FOE Parameters");
+    settings.beginGroup("PMAS Parameters");
     ui->eIPFoE->setText(settings.value("IP PMAS","192.168.35.10").toString());
-    ui->eIPHost->setText(settings.value("IP HOST","192.168.35.5").toString());    
+    ui->eIPHost->setText(settings.value("IP HOST","192.168.35.4").toString());
+    settings.endGroup();
+
+    settings.beginGroup("FOE Parameters");
     ui->eFileNameTo->setText(settings.value("File name to","hello.txt").toString());
     ui->eFileNameTo_2->setText(settings.value("File name to 2","hello.txt").toString());
     ui->eFileNameTo_3->setText(settings.value("File name to 3","hello.txt").toString());
@@ -57,6 +76,35 @@ MainWindow::MainWindow(QWidget *parent)
     ui->ePasswordFrom_5->setText(settings.value("Password from 5","20000000").toString());
     settings.endGroup();
 
+    settings.beginGroup("SDO Parameters");
+    ui->eSDOFileNameTo->setText(settings.value("File name to","hello.txt").toString());
+    ui->eSDOFileNameTo_2->setText(settings.value("File name to 2","hello.txt").toString());
+    ui->eSDOFileNameTo_3->setText(settings.value("File name to 3","hello.txt").toString());
+    ui->eSDOFileNameTo_4->setText(settings.value("File name to 4","hello.txt").toString());
+    ui->eSDOFileNameTo_5->setText(settings.value("File name to 5","hello.txt").toString());
+    ui->eSDOPasswordTo->setText(settings.value("Password to","20000000").toString());
+    ui->eSDOPasswordTo_2->setText(settings.value("Password to 2","20000000").toString());
+    ui->eSDOPasswordTo_3->setText(settings.value("Password to 3","20000000").toString());
+    ui->eSDOPasswordTo_4->setText(settings.value("Password to 4","20000000").toString());
+    ui->eSDOPasswordTo_5->setText(settings.value("Password to 5","20000000").toString());
+    ui->eSDOFileNameFrom->setText(settings.value("File name from","hello.txt").toString());
+    ui->eSDOFileNameFrom_2->setText(settings.value("File name from 2","hello.txt").toString());
+    ui->eSDOFileNameFrom_3->setText(settings.value("File name from 3","hello.txt").toString());
+    ui->eSDOFileNameFrom_4->setText(settings.value("File name from 4","hello.txt").toString());
+    ui->eSDOFileNameFrom_5->setText(settings.value("File name from 5","hello.txt").toString());
+    ui->eSDOPasswordFrom->setText(settings.value("Password from","20000000").toString());
+    ui->eSDOPasswordFrom_2->setText(settings.value("Password from 2","20000000").toString());
+    ui->eSDOPasswordFrom_3->setText(settings.value("Password from 3","20000000").toString());
+    ui->eSDOPasswordFrom_4->setText(settings.value("Password from 4","20000000").toString());
+    ui->eSDOPasswordFrom_5->setText(settings.value("Password from 5","20000000").toString());
+    settings.endGroup();
+
+    settings.beginGroup("SDO Parameters");
+    ui->eSDOAddressHeader->setText(settings.value("AddressHeader","0").toString());
+    ui->eSDOSubAddressHeader->setValue(settings.value("SubAddressHeader","0").toInt());
+    ui->eSDOAddressBody->setText(settings.value("AddressBody","0").toString());
+    ui->eSDOSubAddressBody->setValue(settings.value("SubAddressBody","0").toInt());
+    settings.endGroup();
 
     settings.beginGroup("SCP Parameters");
     ui->eIPSCP->setText(settings.value("IP PMAS","192.168.35.10").toString());
@@ -84,9 +132,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::FOE(QString slave, foeMode::T mode, QString fileName, QString password)
+bool MainWindow::FOE(QString slave, eFOEDirection::E mode, QString filePath, QString password)
 {
-    std::string filename(fileName.toStdString());
+    QFileInfo fi(filePath);
+
+    std::string filename(fi.fileName().toStdString());
     bool ok(0);
     int pass=password.toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
@@ -158,10 +208,72 @@ bool MainWindow::FOE(QString slave, foeMode::T mode, QString fileName, QString p
     return true;
 }
 
+bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QString password)
+{
+    bool ok(0);
+    int pass=password.toUInt(&ok,16);
+    qInfo()<<"pass:" << pass;
+
+    unsigned short alias_Header=ui->eSDOAddressHeader->text().toUInt(&ok,16);
+    unsigned short subAddressHeader=ui->eSDOSubAddressHeader->value();
+    unsigned short alias_Body=ui->eSDOAddressBody->text().toUInt(&ok,16);
+    unsigned short subAddressBody=ui->eSDOSubAddressBody->value();
+
+    // used for sending sdo
+    int dataSize;
+
+    tuData udata;
+
+    // -------------------------------- send header
+    QFileInfo fi(filePath);
+    QString fname = fi.fileName();
+    if (fname.size()>12)
+        return false;
+
+    memcpy(udata.pData, , min(static_cast<size_t>(dataSize-k), blockSize));
+    memcpy(udata.pData+4, , min(static_cast<size_t>(dataSize-k), blockSize));
+    if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
+    {
+        report("SDO ERROR!");
+        return false;
+    }
+
+    // -------------------------------- send data
+    QFile CurrentFile(filePath);
+    if(!CurrentFile.open(QIODevice::ReadOnly))
+    {
+        report("Wrong file name! " + filePath);
+    }
+    QByteArray Data = CurrentFile.readAll();
+    CurrentFile.close();
+    dataSize = Data.size();
+
+    size_t blockSize=NODE_ASCII_ARRAY_MAX_LENGTH;
+    for (int k = 0; k<dataSize; k+=blockSize)
+    {
+        memcpy(udata.pData, Data.data()+k, min(static_cast<size_t>(dataSize-k), blockSize));
+        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
+        {
+            report("SDO ERROR!");
+            return false;
+        }
+        else
+        {
+            report("SDO #"+QString::number(k)+" OK!");
+        }
+    }
+
+    return true;
+}
+
 void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
-    pi.PmasConnect();
+    pi.PmasConnected();
+
+    for (auto it: sdos)
+        it->PmasConnected();
+
     ui->eSlaveName->addItems(pmas()->getSlaveNames());
 }
 
@@ -175,26 +287,25 @@ void MainWindow::fileToMemo(QString path)
     ui->textEdit->setText(ui->textEdit->toPlainText() +ReadFile.readAll());
 }
 
+void MainWindow::report(QString text)
+{
+    qInfo() << text;
+    ui->textEdit->setText(ui->textEdit->toPlainText() + text+"\r\n");
+}
+
 void MainWindow::sscFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     switch (m_action)
     {
-        case eActions::aSCPReadTemp:
-        {
-            if (exitCode==0)
-            {
-                fileToMemo("D:/tmp/SCPTemp.txt");
-            }
-            break;
-        }
         case eActions::aSCPRead:
         {
             if (exitCode==0)
             {
-                fileToMemo(ui->eDestDir->text()+"/"+ ui->eRemoteFile->currentText());
+                fileToMemo(m_ProcessResultFile);
             }
             break;
         }
+
         default:
             //ui->textEdit->setText(ui->textEdit->toPlainText()+StdOut);
             break;
@@ -262,7 +373,7 @@ void MainWindow::stateChanged(QProcess::ProcessState state, MainWindow::QPrivate
 void MainWindow::on_bConnect_clicked()
 {
     QSettings settings;
-    settings.beginGroup("FOE Parameters");
+    settings.beginGroup("PMAS Parameters");
     settings.setValue("IP PMAS",ui->eIPFoE->text());
     settings.setValue("IP HOST",ui->eIPHost->text());
     settings.endGroup();
@@ -270,33 +381,15 @@ void MainWindow::on_bConnect_clicked()
     pmas()->Connect(ui->eIPHost->text(), ui->eIPFoE->text());
 }
 
-
-void MainWindow::on_bFromSlave_clicked()
+void MainWindow::TakeFOEFromSlave(const QString& slave, const QString& fpath, const QString& password)
 {
+    QFileInfo fi(fpath);
+    QString fname=fi.fileName();
     m_action=eActions::aFOERead;
-    QSettings settings;
-    settings.beginGroup("FOE Parameters");
-    settings.setValue("File name from",ui->eFileNameFrom->text());
-    settings.setValue("Password from",ui->ePasswordFrom->text());
-    settings.endGroup();
-
-    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom->text(), ui->ePasswordFrom->text()));
+    if (FOE(slave,eFOEDirection::READ, fname, password))
     {
-        m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileNameFrom->text(), "SCPTemp.txt");
+        SCPFromPMAS("D:/tmp", fname, "SCPTemp.txt");
     }
-}
-
-void MainWindow::on_bToSlave_clicked()
-{
-    m_action=eActions::aFOESend;
-    QSettings settings;
-    settings.beginGroup("FOE Parameters");
-    settings.setValue("File name to",ui->eFileNameTo->text());
-    settings.setValue("Password to",ui->ePasswordTo->text());
-    settings.endGroup();
-
-    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo->text(), ui->ePasswordTo->text());
 }
 
 void MainWindow::on_bOpenFile_clicked()
@@ -375,7 +468,7 @@ void MainWindow::on_pushButton_2_clicked()
     pmas()->ResetCommStatistics();
 }
 
-void MainWindow::ReadFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name)
+void MainWindow::SCPFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name)
 {
     QSettings settings;
     settings.beginGroup("SCP Parameters");
@@ -383,7 +476,7 @@ void MainWindow::ReadFromPMAS(QString dest_path, QString remote_file_name, QStri
     settings.setValue("SSH Password",ui->eSSHpassword->text());
     settings.setValue("Target folder",ui->eTargetFolder->text());
     settings.setValue("Dest path",ui->eDestDir->text());
-    settings.endGroup();
+    settings.endGroup();    
 
     QString program = "pscp";
     QStringList arguments;
@@ -391,19 +484,40 @@ void MainWindow::ReadFromPMAS(QString dest_path, QString remote_file_name, QStri
     QString pass = ui->eSSHpassword->text();
     QString ip = ui->eIPSCP->text();
     QString source_path = ui->eTargetFolder->text();
+    m_ProcessResultFile=dest_path +"/"+ local_file_name;
+
     arguments << "-scp" << "-pw" << pass << "-P" << "22" << username+"@"+ip+":"+source_path+"/"+remote_file_name <<
-        dest_path +"/"+ local_file_name;
+        m_ProcessResultFile;
 
     ui->textEdit->setText(ui->textEdit->toPlainText()+"\r\n"+program+" "+arguments.join(" "));
     qInfo() << program << " " << arguments.join(" ");
 
+    m_action=eActions::aSCPRead;
+    proc.start(program , arguments);
+}
+
+void MainWindow::SCPToPMAS(const QString& fpath)
+{
+    QString program = "pscp";
+    QStringList arguments;
+    QString source_path = fpath;
+    QString username = ui->eSSHUserName->text();
+    QString pass = ui->eSSHpassword->text();
+    QString ip = ui->eIPSCP->text();
+    QString dest_path = ui->eTargetFolder->text();
+    arguments << "-scp" << "-pw" << pass << "-P" << "22" <<
+        source_path << username+"@"+ip+":"+dest_path;
+
+    report(program+" "+arguments.join(" "));
+    qInfo() << program << " " << arguments.join(" ");
+
+    m_action=eActions::aSCPSend;
     proc.start(program , arguments);
 }
 
 void MainWindow::on_bSCPRead_clicked()
 {
-    m_action=eActions::aSCPRead;
-    ReadFromPMAS(ui->eDestDir->text(), ui->eRemoteFile->currentText(), ui->eRemoteFile->currentText());
+    SCPFromPMAS(ui->eDestDir->text(), ui->eRemoteFile->currentText(), ui->eRemoteFile->currentText());
 }
 
 void MainWindow::on_bSaveFile_clicked()
@@ -464,20 +578,16 @@ void MainWindow::on_bResetSystem_clicked()
     pmas()->ResetSystemErrors();
 }
 
-void MainWindow::on_bFromSlave_2_clicked()
+void MainWindow::on_bToSlave_clicked()
 {
-    m_action=eActions::aFOERead;
+    m_action=eActions::aFOESend;
     QSettings settings;
     settings.beginGroup("FOE Parameters");
-    settings.setValue("File name from 2",ui->eFileNameFrom_2->text());
-    settings.setValue("Password from 2",ui->ePasswordFrom_2->text());
+    settings.setValue("File name to",ui->eFileNameTo->text());
+    settings.setValue("Password to",ui->ePasswordTo->text());
     settings.endGroup();
 
-    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_2->text(), ui->ePasswordFrom_2->text()));
-    {
-        m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_2->text(), "SCPTemp.txt");
-    }
+    FOE(ui->eSlaveName->currentText(),eFOEDirection::WRITE, ui->eFileNameTo->text(), ui->ePasswordTo->text());
 }
 
 void MainWindow::on_bToSlave_2_clicked()
@@ -489,7 +599,7 @@ void MainWindow::on_bToSlave_2_clicked()
     settings.setValue("Password to 2",ui->ePasswordTo_2->text());
     settings.endGroup();
 
-    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_2->text(), ui->ePasswordTo_2->text());
+    FOE(ui->eSlaveName->currentText(),eFOEDirection::WRITE, ui->eFileNameTo_2->text(), ui->ePasswordTo_2->text());
 }
 
 void MainWindow::on_bToSlave_3_clicked()
@@ -501,7 +611,7 @@ void MainWindow::on_bToSlave_3_clicked()
     settings.setValue("Password to 3",ui->ePasswordTo_3->text());
     settings.endGroup();
 
-    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_3->text(), ui->ePasswordTo_3->text());
+    FOE(ui->eSlaveName->currentText(),eFOEDirection::WRITE, ui->eFileNameTo_3->text(), ui->ePasswordTo_3->text());
 }
 
 void MainWindow::on_bToSlave_4_clicked()
@@ -513,7 +623,7 @@ void MainWindow::on_bToSlave_4_clicked()
     settings.setValue("Password to 4",ui->ePasswordTo_4->text());
     settings.endGroup();
 
-    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_4->text(), ui->ePasswordTo_4->text());
+    FOE(ui->eSlaveName->currentText(),eFOEDirection::WRITE, ui->eFileNameTo_4->text(), ui->ePasswordTo_4->text());
 }
 
 void MainWindow::on_bToSlave_5_clicked()
@@ -525,7 +635,30 @@ void MainWindow::on_bToSlave_5_clicked()
     settings.setValue("Password to 5",ui->ePasswordTo_5->text());
     settings.endGroup();
 
-    FOE(ui->eSlaveName->currentText(),foeMode::eToSlave, ui->eFileNameTo_5->text(), ui->ePasswordTo_5->text());
+    FOE(ui->eSlaveName->currentText(),eFOEDirection::WRITE, ui->eFileNameTo_5->text(), ui->ePasswordTo_5->text());
+}
+
+void MainWindow::on_bFromSlave_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from",ui->eFileNameFrom->text());
+    settings.setValue("Password from",ui->ePasswordFrom->text());
+    settings.endGroup();
+
+    TakeFOEFromSlave(ui->eSlaveName->currentText(), ui->eFileNameFrom->text(), ui->ePasswordFrom->text());
+}
+
+void MainWindow::on_bFromSlave_2_clicked()
+{
+    m_action=eActions::aFOERead;
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name from 2",ui->eFileNameFrom_2->text());
+    settings.setValue("Password from 2",ui->ePasswordFrom_2->text());
+    settings.endGroup();
+
+    TakeFOEFromSlave(ui->eSlaveName->currentText(), ui->eFileNameFrom_2->text(), ui->ePasswordFrom_2->text());
 }
 
 void MainWindow::on_bFromSlave_3_clicked()
@@ -537,11 +670,7 @@ void MainWindow::on_bFromSlave_3_clicked()
     settings.setValue("Password from 3",ui->ePasswordFrom_3->text());
     settings.endGroup();
 
-    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_3->text(), ui->ePasswordFrom_3->text()));
-    {
-        m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_3->text(), "SCPTemp.txt");
-    }
+    TakeFOEFromSlave(ui->eSlaveName->currentText(), ui->eFileNameFrom_3->text(), ui->ePasswordFrom_3->text());
 }
 
 void MainWindow::on_bFromSlave_4_clicked()
@@ -553,11 +682,7 @@ void MainWindow::on_bFromSlave_4_clicked()
     settings.setValue("Password from 4",ui->ePasswordFrom_4->text());
     settings.endGroup();
 
-    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_4->text(), ui->ePasswordFrom_4->text()));
-    {
-        m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_4->text(), "SCPTemp.txt");
-    }
+    TakeFOEFromSlave(ui->eSlaveName->currentText(), ui->eFileNameFrom_4->text(), ui->ePasswordFrom_4->text());
 }
 
 void MainWindow::on_bFromSlave_5_clicked()
@@ -569,9 +694,348 @@ void MainWindow::on_bFromSlave_5_clicked()
     settings.setValue("Password from 5",ui->ePasswordFrom_5->text());
     settings.endGroup();
 
-    if (FOE(ui->eSlaveName->currentText(),foeMode::eFromSlave, ui->eFileNameFrom_5->text(), ui->ePasswordFrom_5->text()));
-    {
-        m_action=eActions::aSCPReadTemp;
-        ReadFromPMAS("D:/tmp", ui->eFileNameFrom_5->text(), "SCPTemp.txt");
-    }
+    TakeFOEFromSlave(ui->eSlaveName->currentText(), ui->eFileNameFrom_5->text(), ui->ePasswordFrom_5->text());
 }
+
+void MainWindow::on_actionSDO_triggered()
+{
+    sdos.push_back(QSharedPointer<FormSDO>(new FormSDO()));
+    sdos[sdos.size()-1]->PmasConnected();
+    sdos[sdos.size()-1]->show();
+}
+
+void MainWindow::on_bToOpenFile_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eFileNameTo->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eFileNameTo->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to",ui->eFileNameTo->text());
+    settings.endGroup();
+}
+
+void MainWindow::on_bToSCP_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to",ui->eFileNameTo->text());
+    settings.setValue("Password to",ui->ePasswordTo->text());
+    settings.endGroup();
+
+    SCPToPMAS(ui->eFileNameTo->text());
+}
+
+
+void MainWindow::on_bToOpenFile_2_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eFileNameTo_2->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eFileNameTo_2->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 2",ui->eFileNameTo_2->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bToOpenFile_3_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eFileNameTo_3->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eFileNameTo_3->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 3",ui->eFileNameTo_3->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bToOpenFile_4_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eFileNameTo_4->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eFileNameTo_4->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 4",ui->eFileNameTo_4->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bToOpenFile_5_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eFileNameTo_5->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eFileNameTo_5->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("FOE Parameters");
+    settings.setValue("File name to 5",ui->eFileNameTo_5->text());
+    settings.endGroup();
+}
+
+void MainWindow::on_bFromSCP_clicked()
+{
+    SCPFromPMAS("D:/tmp", ui->eFileNameFrom->text(), "SCPTemp.txt");
+}
+
+
+
+void MainWindow::on_bFromSCP_2_clicked()
+{
+    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_2->text(), "SCPTemp.txt");
+}
+
+
+void MainWindow::on_bFromSCP_3_clicked()
+{
+    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_3->text(), "SCPTemp.txt");
+}
+
+
+void MainWindow::on_bFromSCP_4_clicked()
+{
+    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_4->text(), "SCPTemp.txt");
+}
+
+
+void MainWindow::on_bFromSCP_5_clicked()
+{
+    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_5->text(), "SCPTemp.txt");
+}
+
+void MainWindow::on_bSDOToSlave_clicked()
+{
+    m_action=eActions::aSDOSend;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to",ui->eSDOFileNameTo->text());
+    settings.setValue("Password to",ui->eSDOPasswordTo->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo->text(), ui->eSDOPasswordTo->text());
+}
+
+void MainWindow::on_bSDOToSlave_2_clicked()
+{
+    m_action=eActions::aSDOSend;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 2",ui->eSDOFileNameTo_2->text());
+    settings.setValue("Password to 2",ui->eSDOPasswordTo_2->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_2->text(), ui->eSDOPasswordTo_2->text());
+}
+
+
+void MainWindow::on_bSDOToSlave_3_clicked()
+{
+    m_action=eActions::aSDOSend;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 3",ui->eSDOFileNameTo_3->text());
+    settings.setValue("Password to 3",ui->eSDOPasswordTo_3->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_3->text(), ui->eSDOPasswordTo_3->text());
+}
+
+void MainWindow::on_bSDOToSlave_4_clicked()
+{
+    m_action=eActions::aSDOSend;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 4",ui->eSDOFileNameTo_4->text());
+    settings.setValue("Password to 4",ui->eSDOPasswordTo_4->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_4->text(), ui->eSDOPasswordTo_4->text());
+}
+
+
+void MainWindow::on_bSDOToSlave_5_clicked()
+{
+    m_action=eActions::aSDOSend;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 5",ui->eSDOFileNameTo_5->text());
+    settings.setValue("Password to 5",ui->eSDOPasswordTo_5->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_5->text(), ui->eSDOPasswordTo_5->text());
+}
+
+
+void MainWindow::on_bSDOFromSlave_clicked()
+{
+    m_action=eActions::aSDORead;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name from",ui->eSDOFileNameFrom->text());
+    settings.setValue("Password from",ui->eSDOPasswordFrom->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom->text(), ui->eSDOPasswordFrom->text());
+}
+
+
+void MainWindow::on_bSDOFromSlave_2_clicked()
+{
+    m_action=eActions::aSDORead;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name from 2",ui->eSDOFileNameFrom_2->text());
+    settings.setValue("Password from 2",ui->eSDOPasswordFrom_2->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_2->text(), ui->eSDOPasswordFrom_2->text());
+}
+
+
+void MainWindow::on_bSDOFromSlave_3_clicked()
+{
+    m_action=eActions::aSDORead;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name from 3",ui->eSDOFileNameFrom_3->text());
+    settings.setValue("Password from 3",ui->eSDOPasswordFrom_3->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_3->text(), ui->eSDOPasswordFrom_3->text());
+}
+
+
+void MainWindow::on_bSDOFromSlave_4_clicked()
+{
+    m_action=eActions::aSDORead;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name from 4",ui->eSDOFileNameFrom_4->text());
+    settings.setValue("Password from 4",ui->eSDOPasswordFrom_4->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_4->text(), ui->eSDOPasswordFrom_4->text());
+}
+
+
+void MainWindow::on_bSDOFromSlave_5_clicked()
+{
+    m_action=eActions::aSDORead;
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name from 5",ui->eSDOFileNameFrom_5->text());
+    settings.setValue("Password from 5",ui->eSDOPasswordFrom_5->text());
+    settings.endGroup();
+
+    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_5->text(), ui->eSDOPasswordFrom_5->text());
+}
+
+
+void MainWindow::on_bSDOToOpenFile_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eSDOFileNameTo->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eSDOFileNameTo->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to",ui->eSDOFileNameTo->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bSDOToOpenFile_2_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eSDOFileNameTo_2->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eSDOFileNameTo_2->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 2",ui->eSDOFileNameTo_2->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bSDOToOpenFile_3_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eSDOFileNameTo_3->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eSDOFileNameTo_3->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 3",ui->eSDOFileNameTo_3->text());
+    settings.endGroup();
+}
+
+void MainWindow::on_bSDOToOpenFile_4_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eSDOFileNameTo_4->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eSDOFileNameTo_4->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 4",ui->eSDOFileNameTo_4->text());
+    settings.endGroup();
+}
+
+void MainWindow::on_bSDOToOpenFile_5_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, tr("Transfer file"), ui->eSDOFileNameTo_5->text(), "Config_Files(*.*)") ;
+    if (filepath.isEmpty())
+        return;
+
+    ui->eSDOFileNameTo_5->setText(filepath);
+
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("File name to 5",ui->eSDOFileNameTo_5->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("AddressHeader",ui->eSDOAddressHeader->text());
+    settings.setValue("SubAddressHeader",ui->eSDOSubAddressHeader->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("AddressBody",ui->eSDOAddressBody->text());
+    settings.setValue("SubAddressBody",ui->eSDOSubAddressBody->text());
+    settings.endGroup();
+}
+

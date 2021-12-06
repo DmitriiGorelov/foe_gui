@@ -15,7 +15,9 @@ SOURCES += \
     CallBack.cpp \
     Controller.cpp \
     GmasInternals.cpp \
+    IOType.cpp \
     formpi.cpp \
+    formsdo.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -23,11 +25,16 @@ HEADERS += \
     CallBack.h \
     Controller.h \
     GmasInternals.h \
+    IOType.h \
+    IOType_Internals.h \
+    enums.h \
     formpi.h \
+    formsdo.h \
     mainwindow.h
 
 FORMS += \
     formpi.ui \
+    formsdo.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -6,8 +6,9 @@
 #include <QString>
 #include <QMap>
 
-
+#include "IOType.h"
 #include "GmasInternals.h"
+#include "enums.h"
 
 class Controller;
 
@@ -90,6 +91,13 @@ public:
                     IN MMC_GETPIVARINFOBYALIAS_IN* pInParam,
                     OUT MMC_GETPIVARINFOBYALIAS_OUT* pOutParam,
                     int result = 0);
+    int wrp_MMC_SendSdoExCmd(
+                    IN MMC_AXIS_REF_HNDL hAxisRef,
+                    IN MMC_SENDSDOEX_IN* pInParam,
+                    OUT MMC_SENDSDOEX_OUT* pOutParam,
+                    int result = 0);
+
+    bool SendSDO(const QString& axisName, tuData& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction);
 
     bool ResetCommDiagnostics();
     bool ResetCommStatistics();
