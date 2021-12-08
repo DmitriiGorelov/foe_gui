@@ -22,8 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->eSDOAddressHeader->setInputMask("HHHH;");
-    ui->eSDOAddressBody->setInputMask("HHHH;");
+    ui->eSDOSendAddressHeader->setInputMask("HHHH;");
+    ui->eSDOSendAddressBody->setInputMask("HHHH;");
+    ui->eSDOReadAddressHeader->setInputMask("HHHH;");
+    ui->eSDOReadAddressBody->setInputMask("HHHH;");
 
     ui->ePasswordTo->setInputMask("HHHHHHHH;");
     ui->ePasswordTo_2->setInputMask("HHHHHHHH;");
@@ -100,10 +102,14 @@ MainWindow::MainWindow(QWidget *parent)
     settings.endGroup();
 
     settings.beginGroup("SDO Parameters");
-    ui->eSDOAddressHeader->setText(settings.value("AddressHeader","0").toString());
-    ui->eSDOSubAddressHeader->setValue(settings.value("SubAddressHeader","0").toInt());
-    ui->eSDOAddressBody->setText(settings.value("AddressBody","0").toString());
-    ui->eSDOSubAddressBody->setValue(settings.value("SubAddressBody","0").toInt());
+    ui->eSDOSendAddressHeader->setText(settings.value("SendAddressHeader","0").toString());
+    ui->eSDOSendSubAddressHeader->setValue(settings.value("SendSubAddressHeader","0").toInt());
+    ui->eSDOSendAddressBody->setText(settings.value("SendAddressBody","0").toString());
+    ui->eSDOSendSubAddressBody->setValue(settings.value("SendSubAddressBody","0").toInt());
+    ui->eSDOReadAddressHeader->setText(settings.value("ReadAddressHeader","0").toString());
+    ui->eSDOReadSubAddressHeader->setValue(settings.value("ReadSubAddressHeader","0").toInt());
+    ui->eSDOReadAddressBody->setText(settings.value("ReadAddressBody","0").toString());
+    ui->eSDOReadSubAddressBody->setValue(settings.value("ReadSubAddressBody","0").toInt());
     settings.endGroup();
 
     settings.beginGroup("SCP Parameters");
@@ -113,6 +119,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->eTargetFolder->setText(settings.value("Target folder","/mnt/jffs/usr/").toString());
     ui->eSourceFile->setText(settings.value("Source path","c:/hello.txt").toString());
     ui->eDestDir->setText(settings.value("Dest path", "d:/").toString());
+    settings.endGroup();
+
+    settings.beginGroup("Parameters");
+    ui->eTmpDir->setText(settings.value("TmpDir", "d:/").toString());
     settings.endGroup();
 
     ui->eSSHpassword->setEchoMode(QLineEdit::Password);
@@ -208,16 +218,16 @@ bool MainWindow::FOE(QString slave, eFOEDirection::E mode, QString filePath, QSt
     return true;
 }
 
-bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QString password)
+bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password)
 {
     bool ok(0);
     int pass=password.toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
 
-    unsigned short alias_Header=ui->eSDOAddressHeader->text().toUInt(&ok,16);
-    unsigned short subAddressHeader=ui->eSDOSubAddressHeader->value();
-    unsigned short alias_Body=ui->eSDOAddressBody->text().toUInt(&ok,16);
-    unsigned short subAddressBody=ui->eSDOSubAddressBody->value();
+    unsigned short alias_Header=ui->eSDOSendAddressHeader->text().toUInt(&ok,16);
+    unsigned short subAddressHeader=ui->eSDOSendSubAddressHeader->value();
+    unsigned short alias_Body=ui->eSDOSendAddressBody->text().toUInt(&ok,16);
+    unsigned short subAddressBody=ui->eSDOSendSubAddressBody->value();
 
     // used for sending sdo
     int dataSize;
@@ -229,6 +239,7 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
     if(!CurrentFile.open(QIODevice::ReadOnly))
     {
         report("Wrong file name! " + filePath);
+        return false;
     }
     QByteArray Data = CurrentFile.readAll();
     CurrentFile.close();
@@ -249,6 +260,10 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
         report("SDO Write Header - ERROR!");
         return false;
     }
+    else
+    {
+        report("SDO Write Header: OK!");
+    }
 
     // -------------------------------- send data
     dataSize = Data.size();
@@ -256,21 +271,92 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
     size_t blockSize=NODE_ASCII_ARRAY_MAX_LENGTH;
     for (int k = 0; k<dataSize; k+=blockSize)
     {
-        memcpy(udata.pData, Data.data()+k, min(static_cast<size_t>(dataSize-k), blockSize));
+        int toWrite=min(static_cast<size_t>(dataSize-k), blockSize);
+        memcpy(udata.pData, Data.data()+k, toWrite);
         if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
         {
             report("SDO Write Body ERROR!");
             return false;
         }
-        else
+        /*else
         {
-            report("SDO #"+QString::number(k)+" OK!");
-        }
+            report("SDO Write Body: "+QString::number(k+toWrite)+" bytes out of "+QString::number(dataSize)+" OK!");
+        }*/
+        report("SDO Write Body: "+QString::number(dataSize)+" bytes OK!");
     }
 
     return true;
 }
 
+bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password)
+{
+    bool ok(0);
+    int pass=password.toUInt(&ok,16);
+    qInfo()<<"pass:" << pass;
+
+    unsigned short alias_Header=ui->eSDOReadAddressHeader->text().toUInt(&ok,16);
+    unsigned short subAddressHeader=ui->eSDOReadSubAddressHeader->value();
+    unsigned short alias_Body=ui->eSDOReadAddressBody->text().toUInt(&ok,16);
+    unsigned short subAddressBody=ui->eSDOReadSubAddressBody->value();
+
+    tuData udata;
+
+    // -------------------------------- send header
+    QFileInfo fi(filePath);
+    QString fname = fi.fileName();
+    int fsize=fi.size();
+    if (fname.size()>12)
+        return false;
+
+    memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
+    memcpy(udata.pData, &pass, 4);
+    memcpy(udata.pData+4, fname.toStdString().c_str(), fname.size());
+    memcpy(udata.pData+16, &fsize, 4);
+    if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
+    {
+        report("SDO Write Header - ERROR!");
+        return false;
+    }
+    else
+    {
+        report("SDO Write Header: OK!");
+    }
+
+
+    // -------------------------------- read data
+    QByteArray Data;
+    //dataSize = Data.size();
+
+    memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
+    size_t blockSize=8;//NODE_ASCII_ARRAY_MAX_LENGTH; // TODO: fix when protocol ready
+    for (int k = 0; k<dataSize; k+=blockSize)
+    {
+        memset(udata.pData,0,blockSize);
+        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::READ))
+        {
+            report("SDO Read Body ERROR!");
+            return false;
+        }
+        else
+        {
+            //report("SDO Write Body: "+QString::number(k+toWrite)+" bytes out of "+QString::number(dataSize)+" OK!");
+            Data+=QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData), blockSize);
+        }
+        report("SDO Read Body: "+QString::number(dataSize)+" bytes OK!");
+    }
+
+    //--------------------------------- check file exists
+    QFile CurrentFile(filePath);
+    if(!CurrentFile.open(QIODevice::WriteOnly))
+    {
+        report("Wrong file name! " + filePath);
+        return false;
+    }
+    CurrentFile.write(Data);
+    CurrentFile.close();
+
+    return true;
+}
 void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
@@ -393,7 +479,7 @@ void MainWindow::TakeFOEFromSlave(const QString& slave, const QString& fpath, co
     m_action=eActions::aFOERead;
     if (FOE(slave,eFOEDirection::READ, fname, password))
     {
-        SCPFromPMAS("D:/tmp", fname, "SCPTemp.txt");
+        SCPFromPMAS(ui->eTmpDir->text(), fname, "SCPTemp.txt");
     }
 }
 
@@ -529,7 +615,6 @@ void MainWindow::on_bSaveFile_clicked()
 {
     QString path = QFileDialog::getExistingDirectory(this, tr("Existing dir to save file")) ;
     ui->eDestDir->setText(path);
-    QFileInfo fi(path);
 }
 
 void MainWindow::on_eListOfRemoteFiles_clicked()
@@ -796,32 +881,32 @@ void MainWindow::on_bToOpenFile_5_clicked()
 
 void MainWindow::on_bFromSCP_clicked()
 {
-    SCPFromPMAS("D:/tmp", ui->eFileNameFrom->text(), "SCPTemp.txt");
+    SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom->text(), "SCPTemp.txt");
 }
 
 
 
 void MainWindow::on_bFromSCP_2_clicked()
 {
-    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_2->text(), "SCPTemp.txt");
+    SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom_2->text(), "SCPTemp.txt");
 }
 
 
 void MainWindow::on_bFromSCP_3_clicked()
 {
-    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_3->text(), "SCPTemp.txt");
+    SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom_3->text(), "SCPTemp.txt");
 }
 
 
 void MainWindow::on_bFromSCP_4_clicked()
 {
-    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_4->text(), "SCPTemp.txt");
+    SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom_4->text(), "SCPTemp.txt");
 }
 
 
 void MainWindow::on_bFromSCP_5_clicked()
 {
-    SCPFromPMAS("D:/tmp", ui->eFileNameFrom_5->text(), "SCPTemp.txt");
+    SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom_5->text(), "SCPTemp.txt");
 }
 
 void MainWindow::on_bSDOToSlave_clicked()
@@ -833,7 +918,7 @@ void MainWindow::on_bSDOToSlave_clicked()
     settings.setValue("Password to",ui->eSDOPasswordTo->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo->text(), ui->eSDOPasswordTo->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo->text(), ui->eSDOPasswordTo->text());
 }
 
 void MainWindow::on_bSDOToSlave_2_clicked()
@@ -845,7 +930,7 @@ void MainWindow::on_bSDOToSlave_2_clicked()
     settings.setValue("Password to 2",ui->eSDOPasswordTo_2->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_2->text(), ui->eSDOPasswordTo_2->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_2->text(), ui->eSDOPasswordTo_2->text());
 }
 
 
@@ -858,7 +943,7 @@ void MainWindow::on_bSDOToSlave_3_clicked()
     settings.setValue("Password to 3",ui->eSDOPasswordTo_3->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_3->text(), ui->eSDOPasswordTo_3->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_3->text(), ui->eSDOPasswordTo_3->text());
 }
 
 void MainWindow::on_bSDOToSlave_4_clicked()
@@ -870,7 +955,7 @@ void MainWindow::on_bSDOToSlave_4_clicked()
     settings.setValue("Password to 4",ui->eSDOPasswordTo_4->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_4->text(), ui->eSDOPasswordTo_4->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_4->text(), ui->eSDOPasswordTo_4->text());
 }
 
 
@@ -883,7 +968,7 @@ void MainWindow::on_bSDOToSlave_5_clicked()
     settings.setValue("Password to 5",ui->eSDOPasswordTo_5->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_5->text(), ui->eSDOPasswordTo_5->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_5->text(), ui->eSDOPasswordTo_5->text());
 }
 
 
@@ -896,7 +981,11 @@ void MainWindow::on_bSDOFromSlave_clicked()
     settings.setValue("Password from",ui->eSDOPasswordFrom->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom->text(), ui->eSDOPasswordFrom->text());
+    QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom->text();
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
+    {
+        fileToMemo(filename);
+    }
 }
 
 
@@ -909,7 +998,7 @@ void MainWindow::on_bSDOFromSlave_2_clicked()
     settings.setValue("Password from 2",ui->eSDOPasswordFrom_2->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_2->text(), ui->eSDOPasswordFrom_2->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_2->text(), ui->eSDOPasswordFrom_2->text());
 }
 
 
@@ -922,7 +1011,7 @@ void MainWindow::on_bSDOFromSlave_3_clicked()
     settings.setValue("Password from 3",ui->eSDOPasswordFrom_3->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_3->text(), ui->eSDOPasswordFrom_3->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_3->text(), ui->eSDOPasswordFrom_3->text());
 }
 
 
@@ -935,7 +1024,7 @@ void MainWindow::on_bSDOFromSlave_4_clicked()
     settings.setValue("Password from 4",ui->eSDOPasswordFrom_4->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_4->text(), ui->eSDOPasswordFrom_4->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_4->text(), ui->eSDOPasswordFrom_4->text());
 }
 
 
@@ -948,7 +1037,7 @@ void MainWindow::on_bSDOFromSlave_5_clicked()
     settings.setValue("Password from 5",ui->eSDOPasswordFrom_5->text());
     settings.endGroup();
 
-    SDO(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_5->text(), ui->eSDOPasswordFrom_5->text());
+    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_5->text(), ui->eSDOPasswordFrom_5->text());
 }
 
 
@@ -1024,23 +1113,54 @@ void MainWindow::on_bSDOToOpenFile_5_clicked()
     settings.endGroup();
 }
 
-
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_bTmpFolder_clicked()
 {
+    QString path = QFileDialog::getExistingDirectory(this, tr("Existing dir to save tmp files")) ;
+    ui->eTmpDir->setText(path);
+
     QSettings settings;
-    settings.beginGroup("SDO Parameters");
-    settings.setValue("AddressHeader",ui->eSDOAddressHeader->text());
-    settings.setValue("SubAddressHeader",ui->eSDOSubAddressHeader->text());
+    settings.beginGroup("Parameters");
+    settings.setValue("TmpDir",ui->eTmpDir->text());
     settings.endGroup();
 }
 
 
-void MainWindow::on_pushButton_4_clicked()
+void MainWindow::on_bSDOSendHeaderSave_clicked()
 {
     QSettings settings;
     settings.beginGroup("SDO Parameters");
-    settings.setValue("AddressBody",ui->eSDOAddressBody->text());
-    settings.setValue("SubAddressBody",ui->eSDOSubAddressBody->text());
+    settings.setValue("SendAddressHeader",ui->eSDOSendAddressHeader->text());
+    settings.setValue("SendSubAddressHeader",ui->eSDOSendSubAddressHeader->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bSDOSendBodySave_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("SendAddressBody",ui->eSDOSendAddressBody->text());
+    settings.setValue("SendSubAddressBody",ui->eSDOSendSubAddressBody->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bSDOReadHeaderSave_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("ReadAddressHeader",ui->eSDOReadAddressHeader->text());
+    settings.setValue("ReadSubAddressHeader",ui->eSDOReadSubAddressHeader->text());
+    settings.endGroup();
+}
+
+
+void MainWindow::on_bSDOReadBodySave_clicked()
+{
+    QSettings settings;
+    settings.beginGroup("SDO Parameters");
+    settings.setValue("ReadAddressBody",ui->eSDOReadAddressBody->text());
+    settings.setValue("ReadSubAddressBody",ui->eSDOReadSubAddressBody->text());
     settings.endGroup();
 }
 

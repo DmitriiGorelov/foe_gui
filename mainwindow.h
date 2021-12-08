@@ -42,7 +42,8 @@ private:
     void SCPFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
     void SCPToPMAS(const QString& fpath);
 
-    bool SDO(QString slave, eSDODirection::E mode, QString filePath, QString password);
+    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
+    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
 
     void fileToMemo(QString path);
 
@@ -166,8 +167,19 @@ private slots:
 
     void on_pushButton_4_clicked();
 
+    void on_bTmpFolder_clicked();
+
+    void on_bSDOSendHeaderSave_clicked();
+
+    void on_bSDOSendBodySave_clicked();
+
+    void on_bSDOReadHeaderSave_clicked();
+
+    void on_bSDOReadBodySave_clicked();
+
 private:
     void TakeFOEFromSlave(const QString& slave, const QString& fname, const QString& password);
+    void TakeSDOromSlave(const QString& slave, const QString& fname, const QString& password);
 
 private:
     Ui::MainWindow *ui;    
