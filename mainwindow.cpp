@@ -224,21 +224,7 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
 
     tuData udata;
 
-    // -------------------------------- send header
-    QFileInfo fi(filePath);
-    QString fname = fi.fileName();
-    if (fname.size()>12)
-        return false;
-
-    memcpy(udata.pData, , min(static_cast<size_t>(dataSize-k), blockSize));
-    memcpy(udata.pData+4, , min(static_cast<size_t>(dataSize-k), blockSize));
-    if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
-    {
-        report("SDO ERROR!");
-        return false;
-    }
-
-    // -------------------------------- send data
+    //--------------------------------- check file exists
     QFile CurrentFile(filePath);
     if(!CurrentFile.open(QIODevice::ReadOnly))
     {
@@ -246,6 +232,25 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
     }
     QByteArray Data = CurrentFile.readAll();
     CurrentFile.close();
+
+    // -------------------------------- send header
+    QFileInfo fi(filePath);
+    QString fname = fi.fileName();
+    int fsize=fi.size();
+    if (fname.size()>12)
+        return false;
+
+    memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
+    memcpy(udata.pData, &pass, 4);
+    memcpy(udata.pData+4, fname.toStdString().c_str(), fname.size());
+    memcpy(udata.pData+16, &fsize, 4);
+    if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
+    {
+        report("SDO Write Header - ERROR!");
+        return false;
+    }
+
+    // -------------------------------- send data
     dataSize = Data.size();
 
     size_t blockSize=NODE_ASCII_ARRAY_MAX_LENGTH;
@@ -254,7 +259,7 @@ bool MainWindow::SDO(QString slave, eSDODirection::E mode, QString filePath, QSt
         memcpy(udata.pData, Data.data()+k, min(static_cast<size_t>(dataSize-k), blockSize));
         if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
         {
-            report("SDO ERROR!");
+            report("SDO Write Body ERROR!");
             return false;
         }
         else
