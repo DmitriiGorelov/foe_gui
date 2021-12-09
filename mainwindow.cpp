@@ -269,11 +269,11 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
     dataSize = Data.size();
 
     size_t blockSize=NODE_ASCII_ARRAY_MAX_LENGTH;
-    for (int k = 0; k<dataSize; k+=blockSize)
+    for (size_t k = 0; k<dataSize; k+=blockSize)
     {
         int toWrite=min(static_cast<size_t>(dataSize-k), blockSize);
         memcpy(udata.pData, Data.data()+k, toWrite);
-        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::WRITE))
+        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, toWrite, true, eSDODirection::WRITE))
         {
             report("SDO Write Body ERROR!");
             return false;
@@ -281,9 +281,9 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
         /*else
         {
             report("SDO Write Body: "+QString::number(k+toWrite)+" bytes out of "+QString::number(dataSize)+" OK!");
-        }*/
-        report("SDO Write Body: "+QString::number(dataSize)+" bytes OK!");
+        }*/        
     }
+    report("SDO Write Body: "+QString::number(dataSize)+" bytes OK!");
 
     return true;
 }
@@ -310,11 +310,11 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
 
     memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
     memcpy(udata.pData, &pass, 4);
-    memcpy(udata.pData+4, fname.toStdString().c_str(), fname.size());
+    memcpy(udata.pData+4, fname.toStdString().c_str(), fsize);
     memcpy(udata.pData+16, &fsize, 4);
     if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
     {
-        report("SDO Write Header - ERROR!");
+        report("SDO Write Header - ERROR! "+ fname + " " + QString::number(alias_Header));
         return false;
     }
     else
@@ -322,28 +322,41 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
         report("SDO Write Header: OK!");
     }
 
-
     // -------------------------------- read data
     QByteArray Data;
-    //dataSize = Data.size();
 
+    int dataShift=4;// beginning of fileData
+    size_t blockSize=4;//NODE_ASCII_ARRAY_MAX_LENGTH-4; // TODO: fix when protocol ready
+
+    // read 1st telegram ,where 4bytes of BytesLeft is a fileSize in total:
     memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
-    size_t blockSize=8;//NODE_ASCII_ARRAY_MAX_LENGTH; // TODO: fix when protocol ready
-    for (int k = 0; k<dataSize; k+=blockSize)
+    if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, dataShift+blockSize, true, eSDODirection::READ))
     {
-        memset(udata.pData,0,blockSize);
-        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, blockSize, true, eSDODirection::READ))
+        report("SDO Read Body 1st block - ERROR!");
+        return false;
+    }
+
+    size_t dataSize(0);
+    memcpy(&dataSize, udata.pData, dataShift);
+    Data+=QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData+dataShift), min(blockSize,dataSize));
+    report("SDO Read Body 1st block. FileSize is: " + QString::number(dataSize));
+
+    int toRead(0);
+    for (size_t k = blockSize; k<dataSize; k+=blockSize)
+    {        
+        if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, dataShift+blockSize, true, eSDODirection::READ))
         {
             report("SDO Read Body ERROR!");
             return false;
         }
         else
         {
-            //report("SDO Write Body: "+QString::number(k+toWrite)+" bytes out of "+QString::number(dataSize)+" OK!");
-            Data+=QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData), blockSize);
-        }
-        report("SDO Read Body: "+QString::number(dataSize)+" bytes OK!");
+            toRead=min(static_cast<size_t>(dataSize-k), blockSize);
+            Data+=QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData+dataShift), toRead);
+        }        
+        report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(*(int*)udata.pData)+" bytes");
     }
+    report("SDO FileRead finished: "+QString::number(dataSize)+" bytes OK!");
 
     //--------------------------------- check file exists
     QFile CurrentFile(filePath);
