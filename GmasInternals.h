@@ -40,7 +40,7 @@
 #define EOE_LEN 		512
 #define DRV_PORT		5001
 
-int HexToInt(const char* s);
+//int HexToInt(const char* s);
 
 //namespace global_namespace {
 

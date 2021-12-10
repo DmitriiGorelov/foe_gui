@@ -304,8 +304,8 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
     // -------------------------------- send header
     QFileInfo fi(filePath);
     QString fname = fi.fileName();
-    int fsize=fi.size();
-    if (fname.size()>12)
+    int fsize=fname.size();
+    if (fsize>12)
         return false;
 
     memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
@@ -315,6 +315,7 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
     if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
     {
         report("SDO Write Header - ERROR! "+ fname + " " + QString::number(alias_Header));
+        //qDebug()<<QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData),NODE_ASCII_ARRAY_MAX_LENGTH);
         return false;
     }
     else

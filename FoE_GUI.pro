@@ -1,11 +1,14 @@
 QT       += core gui
+QT += gui widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
 CONFIG += console
+#CONFIG += staticlib
 
-QMAKE_CXXFLAGS += /Zc:strictStrings-
+QMAKE_CXXFLAGS += "/Zc:strictStrings-"
+
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -46,10 +49,8 @@ INCLUDEPATH += "c:\GMAS\includes"
 INCLUDEPATH += "c:\GMAS\includes\CPP"
 INCLUDEPATH += "c:\GMAS\includes\EMBL"
 
-unix|win32: LIBS += -LC:/GMAS/libwin32/ -lmmc_lib
-
 DEPENDPATH += C:/GMAS/libwin32
 
+unix|win32: LIBS += -LC:/GMAS/libwin32/ -lmmc_lib
 unix|win32: LIBS += -LC:/GMAS/libwin32/ -lmmcpp_lib
 
-DEPENDPATH += C:/GMAS/libwin32

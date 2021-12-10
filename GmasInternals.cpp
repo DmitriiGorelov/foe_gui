@@ -15,7 +15,7 @@ namespace gmas {
 //} // global_namespace
 
 
-int HexToInt(const char* s)
+/*int HexToInt(const char* s)
 {
     char * x = strstr(const_cast<char*>(s), "x");
     if (x == NULL)
@@ -42,4 +42,4 @@ int HexToInt(const char* s)
 
     return v;
 
-}
+}*/

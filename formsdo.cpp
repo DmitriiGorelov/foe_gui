@@ -59,7 +59,8 @@ void FormSDO::on_bSendSDO_clicked()
 
     QString val=ui->eData->text();
     tuData udata;
-    unsigned short address=HexToInt(ui->eAddress->text().toStdString().c_str());
+    bool ok;
+    unsigned short address=ui->eAddress->text().toUInt(&ok,16);// toStdString().c_str());
     unsigned char subAddress = ui->eSubAddress->value();
     int dataSize = val.size();
     QByteArray Data;
@@ -101,7 +102,7 @@ void FormSDO::on_bSendSDO_clicked()
             break;
     }
 
-    int blockSize=ui->eDataSize->value();
+    size_t blockSize=ui->eDataSize->value();
     for (int k = 0; k<dataSize; k+=blockSize)
     {
         memcpy(udata.pData, Data.data()+k, min(static_cast<size_t>(dataSize-k),blockSize));
@@ -128,7 +129,8 @@ void FormSDO::on_bReadSDO_clicked()
     auto dataType=it.value();
     QString val=ui->eData->text();
     tuData udata;
-    unsigned short address=HexToInt(ui->eAddress->text().toStdString().c_str());
+    bool ok;
+    unsigned short address=ui->eAddress->text().toUInt(&ok,16);//.toStdString().c_str());
     unsigned char subAddress = ui->eSubAddress->value();
     int dataSize = val.size();
 

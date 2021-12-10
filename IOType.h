@@ -538,7 +538,7 @@ typedef SEND_SDO_DATA_EX tuData;
                     case IOTypeUI: res = QString::number(udata.uiData); break;
                     case IOTypeULL: res = QString::number(udata.ullData); break;
                     case IOTypeULong: res = QString::number(udata.ulData); break;
-                    case IOTypeUnsignedChar: res = QString(udata.ucData); break; //?
+                    case IOTypeUnsignedChar: res = QString(static_cast<char>(udata.ucData)); break; //?
                     case IOTypeUShort: res = QString::number(udata.usData); break;
 					default:
                         //lerr << ("eIOType type is not defined in " + RefFileFunctLine);
