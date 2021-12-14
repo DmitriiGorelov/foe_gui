@@ -2647,7 +2647,7 @@
                     <string notr="true">background-color: rgb(255, 170, 0);</string>
                    </property>
                    <property name="text">
-                    <string>File Name</string>
+                    <string>File Path</string>
                    </property>
                    <property name="openExternalLinks">
                     <bool>false</bool>
@@ -2655,7 +2655,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOFileNameTo"/>
+                  <widget class="QLineEdit" name="eSDOFileNameTo">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToOpenFile">
@@ -2664,6 +2668,9 @@
                      <width>20</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -2681,7 +2688,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOPasswordTo"/>
+                  <widget class="QLineEdit" name="eSDOPasswordTo">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToSlave">
@@ -3371,12 +3382,16 @@
                     <string notr="true">background-color: rgb(255, 170, 0);</string>
                    </property>
                    <property name="text">
-                    <string>File Name</string>
+                    <string>File Path</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOFileNameTo_2"/>
+                  <widget class="QLineEdit" name="eSDOFileNameTo_2">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToOpenFile_2">
@@ -3385,6 +3400,9 @@
                      <width>20</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -3402,7 +3420,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOPasswordTo_2"/>
+                  <widget class="QLineEdit" name="eSDOPasswordTo_2">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToSlave_2">
@@ -4001,12 +4023,16 @@
                     <string notr="true">background-color: rgb(255, 170, 0);</string>
                    </property>
                    <property name="text">
-                    <string>File Name</string>
+                    <string>File Path</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOFileNameTo_3"/>
+                  <widget class="QLineEdit" name="eSDOFileNameTo_3">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToOpenFile_3">
@@ -4015,6 +4041,9 @@
                      <width>20</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -4032,7 +4061,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOPasswordTo_3"/>
+                  <widget class="QLineEdit" name="eSDOPasswordTo_3">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToSlave_3">
@@ -4631,12 +4664,16 @@
                     <string notr="true">background-color: rgb(255, 170, 0);</string>
                    </property>
                    <property name="text">
-                    <string>File Name</string>
+                    <string>File Path</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOFileNameTo_4"/>
+                  <widget class="QLineEdit" name="eSDOFileNameTo_4">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToOpenFile_4">
@@ -4645,6 +4682,9 @@
                      <width>20</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -4662,7 +4702,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOPasswordTo_4"/>
+                  <widget class="QLineEdit" name="eSDOPasswordTo_4">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToSlave_4">
@@ -5261,12 +5305,16 @@
                     <string notr="true">background-color: rgb(255, 170, 0);</string>
                    </property>
                    <property name="text">
-                    <string>File Name</string>
+                    <string>File Path</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOFileNameTo_5"/>
+                  <widget class="QLineEdit" name="eSDOFileNameTo_5">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToOpenFile_5">
@@ -5275,6 +5323,9 @@
                      <width>20</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -5292,7 +5343,11 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="eSDOPasswordTo_5"/>
+                  <widget class="QLineEdit" name="eSDOPasswordTo_5">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="bSDOToSlave_5">
@@ -5520,8 +5575,102 @@
              </property>
              <item>
               <widget class="QLabel" name="label_53">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="Button">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Base">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Window">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="Button">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Base">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Window">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="Button">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Base">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="Window">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>85</red>
+                     <green>170</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 170, 0);</string>
+               </property>
                <property name="text">
-                <string>Tmp Folder</string>
+                <string>READ Folder</string>
                </property>
               </widget>
              </item>
@@ -5530,6 +5679,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="bTmpFolder">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 170, 0);</string>
+               </property>
                <property name="text">
                 <string>Choose</string>
                </property>
@@ -5540,7 +5692,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_39">
              <property name="spacing">
-              <number>0</number>
+              <number>10</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -5549,192 +5701,10 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QGroupBox" name="groupBox_2">
-               <property name="title">
-                <string>SEND SDO</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_11">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="label_33">
-                      <property name="minimumSize">
-                       <size>
-                        <width>75</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>75</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="layoutDirection">
-                       <enum>Qt::LeftToRight</enum>
-                      </property>
-                      <property name="text">
-                       <string>Header:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="eSDOSendAddressHeader">
-                      <property name="minimumSize">
-                       <size>
-                        <width>120</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>120</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="eSDOSendSubAddressHeader">
-                      <property name="minimumSize">
-                       <size>
-                        <width>50</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="maximum">
-                       <number>255</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="bSDOSendHeaderSave">
-                      <property name="minimumSize">
-                       <size>
-                        <width>50</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Save</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_26">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="label_36">
-                      <property name="minimumSize">
-                       <size>
-                        <width>75</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>75</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Body:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="eSDOSendAddressBody">
-                      <property name="minimumSize">
-                       <size>
-                        <width>120</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>120</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="eSDOSendSubAddressBody">
-                      <property name="minimumSize">
-                       <size>
-                        <width>50</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="bSDOSendBodySave">
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Save</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
               <widget class="QGroupBox" name="groupBox">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 170, 0);</string>
+               </property>
                <property name="title">
                 <string>READ SDO</string>
                </property>
@@ -5930,6 +5900,194 @@
                </layout>
               </widget>
              </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_2">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(255, 170, 0);</string>
+               </property>
+               <property name="title">
+                <string>SEND SDO</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_11">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_13">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_33">
+                      <property name="minimumSize">
+                       <size>
+                        <width>75</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>75</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="layoutDirection">
+                       <enum>Qt::LeftToRight</enum>
+                      </property>
+                      <property name="text">
+                       <string>Header:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="eSDOSendAddressHeader">
+                      <property name="minimumSize">
+                       <size>
+                        <width>120</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>120</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="eSDOSendSubAddressHeader">
+                      <property name="minimumSize">
+                       <size>
+                        <width>50</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="maximum">
+                       <number>255</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bSDOSendHeaderSave">
+                      <property name="minimumSize">
+                       <size>
+                        <width>50</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Save</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_26">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_36">
+                      <property name="minimumSize">
+                       <size>
+                        <width>75</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>75</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Body:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="eSDOSendAddressBody">
+                      <property name="minimumSize">
+                       <size>
+                        <width>120</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>120</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="eSDOSendSubAddressBody">
+                      <property name="minimumSize">
+                       <size>
+                        <width>50</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bSDOSendBodySave">
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Save</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>
@@ -6066,7 +6224,7 @@
      <x>0</x>
      <y>0</y>
      <width>1069</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
