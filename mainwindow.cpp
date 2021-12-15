@@ -311,7 +311,7 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
     memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
     memcpy(udata.pData, &pass, 4);
     memcpy(udata.pData+4, fname.toStdString().c_str(), fsize);
-    memcpy(udata.pData+16, &fsize, 4);
+    //memcpy(udata.pData+16, &fsize, 4);
     if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
     {
         report("SDO Write Header - ERROR! "+ fname + " " + QString::number(alias_Header));
