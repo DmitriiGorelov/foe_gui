@@ -1012,7 +1012,11 @@ void MainWindow::on_bSDOFromSlave_2_clicked()
     settings.setValue("Password from 2",ui->eSDOPasswordFrom_2->text());
     settings.endGroup();
 
-    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_2->text(), ui->eSDOPasswordFrom_2->text());
+    QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_2->text();
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_2->text()))
+    {
+        fileToMemo(filename);
+    }
 }
 
 
@@ -1025,7 +1029,11 @@ void MainWindow::on_bSDOFromSlave_3_clicked()
     settings.setValue("Password from 3",ui->eSDOPasswordFrom_3->text());
     settings.endGroup();
 
-    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_3->text(), ui->eSDOPasswordFrom_3->text());
+    QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_3->text();
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_3->text()))
+    {
+        fileToMemo(filename);
+    }
 }
 
 
@@ -1038,7 +1046,11 @@ void MainWindow::on_bSDOFromSlave_4_clicked()
     settings.setValue("Password from 4",ui->eSDOPasswordFrom_4->text());
     settings.endGroup();
 
-    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_4->text(), ui->eSDOPasswordFrom_4->text());
+    QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_4->text();
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_4->text()))
+    {
+        fileToMemo(filename);
+    }
 }
 
 
@@ -1051,7 +1063,11 @@ void MainWindow::on_bSDOFromSlave_5_clicked()
     settings.setValue("Password from 5",ui->eSDOPasswordFrom_5->text());
     settings.endGroup();
 
-    SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::READ, ui->eSDOFileNameFrom_5->text(), ui->eSDOPasswordFrom_5->text());
+    QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_5->text();
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_5->text()))
+    {
+        fileToMemo(filename);
+    }
 }
 
 
