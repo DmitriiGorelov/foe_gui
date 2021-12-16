@@ -455,7 +455,7 @@ void Controller::slavesListUpdate()
 
     MMC_GETAXISNAME_IN pInParam;
     MMC_GETAXISNAME_OUT pOutParam;
-    for (int i=0; i<=nActiveNodes; i++) // by some reason <= works . Otherwise the last slave is not in the list
+    for (int i=0; i<nActiveNodes; i++) // by some reason <= works . Otherwise the last slave is not in the list
     {
         pInParam.uiAxisIndex=i;
         if (0==wrp_GetAxisName(&pInParam, &pOutParam))
