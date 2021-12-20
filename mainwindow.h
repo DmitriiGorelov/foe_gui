@@ -42,6 +42,8 @@ private:
     void SCPFromPMAS(QString dest_path, QString remote_file_name, QString local_file_name);
     void SCPToPMAS(const QString& fpath);
 
+    void SDOSendMD5(const QString& slave, const QString& filePath, const QString& pass);
+    bool SDOSendData(QString slave, eSDODirection::E mode, QString filePath, QByteArray Data, QString password);
     bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
     bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
 
@@ -172,6 +174,16 @@ private slots:
     void on_bSDOReadHeaderSave_clicked();
 
     void on_bSDOReadBodySave_clicked();
+
+    void on_bSDOFromSlaveMD5_clicked();
+
+    void on_bSDOFromSlaveMD5_2_clicked();
+
+    void on_bSDOFromSlaveMD5_3_clicked();
+
+    void on_bSDOFromSlaveMD5_4_clicked();
+
+    void on_bSDOFromSlaveMD5_5_clicked();
 
 private:
     void TakeFOEFromSlave(const QString& slave, const QString& fname, const QString& password);

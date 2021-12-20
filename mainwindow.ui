@@ -2678,6 +2678,16 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="cbSDOToSlaveMD5">
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_40">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -3410,6 +3420,16 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="cbSDOToSlaveMD5_2">
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_42">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -4047,6 +4067,16 @@
                    </property>
                    <property name="text">
                     <string>...</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="cbSDOToSlaveMD5_3">
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -4692,6 +4722,16 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="cbSDOToSlaveMD5_4">
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_45">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -5333,6 +5373,16 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="cbSDOToSlaveMD5_5">
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_48">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -5377,6 +5427,19 @@
                   <widget class="QLineEdit" name="eSDOFileNameFrom"/>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="bSDOFromSlaveMD5">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_57">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -5415,6 +5478,19 @@
                  </item>
                  <item>
                   <widget class="QLineEdit" name="eSDOFileNameFrom_2"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="bSDOFromSlaveMD5_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_55">
@@ -5457,6 +5533,19 @@
                   <widget class="QLineEdit" name="eSDOFileNameFrom_3"/>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="bSDOFromSlaveMD5_3">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_60">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -5497,6 +5586,19 @@
                   <widget class="QLineEdit" name="eSDOFileNameFrom_4"/>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="bSDOFromSlaveMD5_4">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_54">
                    <property name="styleSheet">
                     <string notr="true"/>
@@ -5535,6 +5637,19 @@
                  </item>
                  <item>
                   <widget class="QLineEdit" name="eSDOFileNameFrom_5"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="bSDOFromSlaveMD5_5">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>MD5</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_56">

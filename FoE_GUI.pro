@@ -19,6 +19,7 @@ SOURCES += \
     Controller.cpp \
     GmasInternals.cpp \
     IOType.cpp \
+    MD5.cpp \
     formpi.cpp \
     formsdo.cpp \
     main.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     GmasInternals.h \
     IOType.h \
     IOType_Internals.h \
+    MD5.h \
     enums.h \
     formpi.h \
     formsdo.h \

@@ -17,6 +17,16 @@ Controller::Controller()
 
 bool Controller::Connect(QString IPHost, QString IP)
 {
+    if (Simulated())
+    {
+        m_gConnHndl=777;
+        network.SetConnHndl(m_gConnHndl);
+
+        emit onConnect();
+
+        return true;
+    }
+
     m_gConnHndl = cConn.ConnectRPCEx(const_cast<char*>(IPHost.toStdString().c_str()), const_cast<char*>(IP.toStdString().c_str()),
             0x7fffffff, reinterpret_cast<MMC_MB_CLBK>(CallbackFunc));
 
@@ -43,7 +53,12 @@ bool Controller::Connected()
 
 bool Controller::Simulated()
 {
+#if _DEBUG
+    static bool value = true;
+#else
     static bool value = false;
+#endif
+
     return value;
 }
 
@@ -312,12 +327,12 @@ int Controller::wrp_MMC_SendSdoExCmd(
     {
         memset(pOutParam, 0, sizeof(*pOutParam));
         int res = MMC_SendSdoExCmd(getConnHndl(), static_cast<MMC_AXIS_REF_HNDL>(hAxisRef), pInParam, pOutParam);
-        qInfo() << "gmasref_" << QString::number(hAxisRef) << " Request: ucService " << QString(pInParam->ucService) <<
+        qInfo() << "IN: gmasref_" << QString::number(hAxisRef) << " Request: ucService " << QString(pInParam->ucService) <<
             ", usIndex " << QString::number(pInParam->usIndex) << ", ucSubIndex " << QString::number(pInParam->ucSubIndex) <<
             ", DataSize" << QString::number(pInParam->ucDataLength) <<
             ", lData " << QString::number(pInParam->uData.lData) <<
-            ", Data " << QByteArray(reinterpret_cast<char*>(pOutParam->uData.pData),80).toHex();
-        qInfo() << "gmasref_" << QString::number(hAxisRef) << " Reponse: res " << res << ", usErrorID " << QString::number(pOutParam->usErrorID) <<
+            ", Data " << QByteArray(reinterpret_cast<char*>(pInParam->uData.pData),80).toHex();
+        qInfo() << "OUT: gmasref_" << QString::number(hAxisRef) << " Reponse: res " << res << ", usErrorID " << QString::number(pOutParam->usErrorID) <<
             ", lData " << QString::number(pOutParam->uData.lData) <<
             ", Data " << QByteArray(reinterpret_cast<char*>(pOutParam->uData.pData),80).toHex();
         return res;
