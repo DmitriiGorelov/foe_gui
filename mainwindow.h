@@ -6,6 +6,8 @@
 #include <QSharedPointer>
 #include <QVector>
 
+#include "MD5.h"
+
 #include "Controller.h"
 #include "enums.h"
 
@@ -44,12 +46,14 @@ private:
 
     void SDOSendMD5(const QString& slave, const QString& filePath, const QString& pass);
     bool SDOSendData(QString slave, eSDODirection::E mode, QString filePath, QByteArray Data, QString password);
-    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
-    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
+    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char md5[MD5_SIZE]);
+    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char md5[MD5_SIZE]);
 
     void fileToMemo(QString path);
 
     void report(QString text);
+
+    void md5FromFile(const QString& path, char* arr);
 
 private slots:
     void onConnect();

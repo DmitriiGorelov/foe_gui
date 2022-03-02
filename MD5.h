@@ -35,7 +35,8 @@ documentation and/or software.
  
 #include <cstring>
 #include <iostream>
- 
+
+#define MD5_SIZE 16u
  
 // a small class for calculating MD5 hashes of strings or byte arrays
 // it is not meant to be fast or secure
