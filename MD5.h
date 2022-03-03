@@ -35,8 +35,9 @@ documentation and/or software.
  
 #include <cstring>
 #include <iostream>
+#include <array>
 
-#define MD5_SIZE 16u
+#define MD5_SIZE 16
  
 // a small class for calculating MD5 hashes of strings or byte arrays
 // it is not meant to be fast or secure
@@ -48,6 +49,9 @@ documentation and/or software.
 //      MD5(std::string).hexdigest()
 //
 // assumes that char is 8 bit and int is 32 bit
+
+typedef std::array<char, MD5_SIZE> tMD5;
+
 class MD5
 {
 public:
@@ -61,6 +65,7 @@ public:
   void update(const char *buf, size_type length);
   MD5& finalize();
   std::string hexdigest() const;
+  bool hexdigest(tMD5& out) const;
   friend std::ostream& operator<<(std::ostream&, MD5 md5);
  
 private:
@@ -77,7 +82,7 @@ private:
   uint1 buffer[blocksize]; // bytes that didn't fit in last 64 byte chunk
   uint4 count[2];   // 64bit counter for number of bits (lo, hi)
   uint4 state[4];   // digest so far
-  uint1 digest[16]; // the result
+  uint1 digest[MD5_SIZE]; // the result
  
   // low level logic operations
   static inline uint4 F(uint4 x, uint4 y, uint4 z);
@@ -91,7 +96,8 @@ private:
   static inline void II(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac);
 };
  
-std::string md5(const std::string str);
-std::string md5(char * Input, long length);
+std::string md5s(const std::string str);
+std::string md5s(char * Input, long length);
+bool md5c(const std::string str, tMD5& out);
  
 #endif

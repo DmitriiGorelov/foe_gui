@@ -46,14 +46,14 @@ private:
 
     void SDOSendMD5(const QString& slave, const QString& filePath, const QString& pass);
     bool SDOSendData(QString slave, eSDODirection::E mode, QString filePath, QByteArray Data, QString password);
-    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char md5[MD5_SIZE]);
-    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char md5[MD5_SIZE]);
+    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5);
+    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5);
 
     void fileToMemo(QString path);
 
     void report(QString text);
 
-    void md5FromFile(const QString& path, char* arr);
+    bool md5FromFile(const QString& path, tMD5& arr);
 
 private slots:
     void onConnect();

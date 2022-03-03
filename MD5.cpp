@@ -35,7 +35,7 @@ documentation and/or software.
  
 /* system implementation headers */
 #include <cstdio>
- 
+
  
 // Constants for MD5Transform routine.
 #define S11 7
@@ -352,6 +352,16 @@ std::string MD5::hexdigest() const
   return std::string(buf);
 }
  
+// return hex representation of digest as string
+bool MD5::hexdigest(tMD5& out) const
+{
+  if (!finalized)
+    return false;
+
+  memcpy(out.data(), digest, MD5_SIZE);
+  return true;
+}
+
 //////////////////////////////
  
 std::ostream& operator<<(std::ostream& out, MD5 md5)
@@ -361,16 +371,24 @@ std::ostream& operator<<(std::ostream& out, MD5 md5)
  
 //////////////////////////////
  
-std::string md5(const std::string str)
+std::string md5s(const std::string str)
 {
     MD5 md5 = MD5(str);
  
     return md5.hexdigest();
 }
 
-std::string md5(char * Input, long length)
+std::string md5s(char * Input, long length)
 {
     MD5 md5 = MD5(Input,length);
  
     return md5.hexdigest();
+}
+
+
+bool md5c(const std::string str, tMD5& out)
+{
+    MD5 md5 = MD5(str);
+
+    return md5.hexdigest(out);
 }

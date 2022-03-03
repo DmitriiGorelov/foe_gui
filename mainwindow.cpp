@@ -15,21 +15,59 @@ namespace FileHeader
 {
 #pragma pack(push,1)
 constexpr unsigned short flagPrint=0x0101; // avoid small/big endianness
-struct data
+class data
 {
+
     union {
         struct {
             unsigned short flag;
-            char md5[16];
-            char verLo;
+            char md5[MD5_SIZE];
             char verHi;
+            char verLo;
         } content;
         char c[sizeof(content)];
     };
 
+public:
+    data() {
+        content.flag=flagPrint;
+        memset(content.md5,0, MD5_SIZE);
+        content.verLo=0;
+        content.verHi=0;
+    }
+
+    QByteArray byteArray()
+    {
+        return QByteArray::fromRawData(c, sizeof(c));
+    }
+
+    void setMD5(tMD5 md5)
+    {
+        memcpy(content.md5, md5.data(), MD5_SIZE);
+    }
+
+    void setVersion(const char valueLo, const char valueHi)
+    {
+        content.verHi=valueHi;
+        content.verLo=valueLo;
+    }
+
+    bool isValid()
+    {
+        return content.flag==flagPrint;
+    }
+
     size_t size()
     {
         return sizeof(c);
+    }
+
+    bool matchMD5(const tMD5& md5)
+    {
+        for (size_t i=0; i<MD5_SIZE; i++)
+        if (md5[i]!=content.md5[i])
+            return false;
+        return true;
     }
 
     bool set(QByteArray data, size_t len, size_t& rest)
@@ -249,7 +287,7 @@ bool MainWindow::FOE(QString slave, eFOEDirection::E mode, QString filePath, QSt
     return true;
 }
 
-bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char md5[MD5_SIZE])
+bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5)
 {
     bool ok(0);
     int pass=password.toUInt(&ok,16);
@@ -276,14 +314,8 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
     CurrentFile.close();
 
     FileHeader::data fileHeader;
-    if (md5)
-    {
-        fileHeader.content.flag=FileHeader::flagPrint;// TODO: to constructor...
-        fileHeader.content.verLo=0;
-        fileHeader.content.verHi=0;
-        memcpy(fileHeader.content.md5, md5, mdSize);
-        Data=QByteArray::fromRawData(fileHeader.c, mdSize) + Data;
-    }
+    fileHeader.setMD5(md5);
+    Data=fileHeader.byteArray() + Data;
 
     // -------------------------------- send header
     QFileInfo fi(filePath);
@@ -332,7 +364,7 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
     return true;
 }
 
-bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, const char* md5)
+bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5)
 {
     FileHeader::data headerFile;
 
@@ -403,15 +435,12 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
                 if (headerFile.set(Data, Data.size(), rest))
                 {
                     headerFile_Ready=true;
-                    if (headerFile.content.flag==FileHeader::flagPrint)
+                    if (headerFile.isValid())
                     {
                         Data=Data.mid(headerFile.size(), rest);
-                        if (md5)
+                        if (headerFile.matchMD5(md5))
                         {
-                            if (strcmp(md5, headerFile.content.md5) == 0)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
@@ -1082,13 +1111,13 @@ void MainWindow::SDOSendMD5(const QString& slave, const QString& filePath, const
     QByteArray Data = CurrentFile.readAll();
     CurrentFile.close();
 
-    QString md(md5(Data.toStdString()).c_str());
+    QString md(md5s(Data.toStdString()).c_str());
     report(fi.completeBaseName()+" MD5 = " + md );
     SDOSendData(slave, eSDODirection::WRITE, fnamemd5,
                 QByteArray::fromRawData(md.toStdString().c_str(), md.size()), pass);
 }
 
-void MainWindow::md5FromFile(const QString& path, char* arr)
+bool MainWindow::md5FromFile(const QString& path, tMD5& arr)
 {
     QString filePath=path;
     QFile CurrentFile(filePath);
@@ -1096,12 +1125,12 @@ void MainWindow::md5FromFile(const QString& path, char* arr)
     {
         report("Wrong file name! " + filePath);
         arr[0]=0;
-        return ;
+        return false;
     }
     QByteArray Data = CurrentFile.readAll();
     CurrentFile.close();
 
-    memcpy(arr,md5(Data.toStdString()).c_str(),MD5_SIZE);
+    return md5c(Data.toStdString(), arr);
 }
 
 void MainWindow::on_bSDOToSlave_clicked()
@@ -1113,7 +1142,7 @@ void MainWindow::on_bSDOToSlave_clicked()
     settings.setValue("Password to",ui->eSDOPasswordTo->text());
     settings.endGroup();
 
-    char md5[MD5_SIZE]={0};
+    tMD5 md5={0};
     if (ui->cbSDOToSlaveMD5->isChecked())
         md5FromFile(ui->eSDOFileNameTo->text(), md5);
     if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo->text(), ui->eSDOPasswordTo->text(), md5))
@@ -1134,10 +1163,10 @@ void MainWindow::on_bSDOToSlave_2_clicked()
     settings.setValue("Password to 2",ui->eSDOPasswordTo_2->text());
     settings.endGroup();    
 
-    QString md5;
+    tMD5 md5={0};
     if (ui->cbSDOToSlaveMD5_2->isChecked())
-        md5=md5FromFile(ui->eSDOFileNameTo_2->text());
-    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_2->text(), ui->eSDOPasswordTo_2->text(), md5.toStdString().c_str(), md5.size()))
+        md5FromFile(ui->eSDOFileNameTo_2->text(), md5);
+    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_2->text(), ui->eSDOPasswordTo_2->text(), md5))
     {
         /*if (ui->cbSDOToSlaveMD5_2->isChecked())
         {
@@ -1156,10 +1185,10 @@ void MainWindow::on_bSDOToSlave_3_clicked()
     settings.setValue("Password to 3",ui->eSDOPasswordTo_3->text());
     settings.endGroup();    
 
-    QString md5;
+    tMD5 md5={0};
     if (ui->cbSDOToSlaveMD5_3->isChecked())
-        md5=md5FromFile(ui->eSDOFileNameTo_3->text());
-    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_3->text(), ui->eSDOPasswordTo_3->text(), md5.toStdString().c_str(), md5.size()))
+        md5FromFile(ui->eSDOFileNameTo_3->text(), md5);
+    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_3->text(), ui->eSDOPasswordTo_3->text(), md5))
     {
         /*if (ui->cbSDOToSlaveMD5_3->isChecked())
         {
@@ -1177,10 +1206,10 @@ void MainWindow::on_bSDOToSlave_4_clicked()
     settings.setValue("Password to 4",ui->eSDOPasswordTo_4->text());
     settings.endGroup();    
 
-    QString md5;
+    tMD5 md5={0};
     if (ui->cbSDOToSlaveMD5_4->isChecked())
-        md5=md5FromFile(ui->eSDOFileNameTo_4->text());
-    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_4->text(), ui->eSDOPasswordTo_4->text(), md5.toStdString().c_str(), md5.size()))
+        md5FromFile(ui->eSDOFileNameTo_4->text(), md5);
+    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_4->text(), ui->eSDOPasswordTo_4->text(), md5))
     {
         /*if (ui->cbSDOToSlaveMD5_4->isChecked())
         {
@@ -1199,10 +1228,10 @@ void MainWindow::on_bSDOToSlave_5_clicked()
     settings.setValue("Password to 5",ui->eSDOPasswordTo_5->text());
     settings.endGroup();    
 
-    QString md5;
+    tMD5 md5={0};
     if (ui->cbSDOToSlaveMD5_5->isChecked())
-        md5=md5FromFile(ui->eSDOFileNameTo_5->text());
-    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_5->text(), ui->eSDOPasswordTo_5->text(), md5.toStdString().c_str(), md5.size()))
+        md5FromFile(ui->eSDOFileNameTo_5->text(), md5);
+    if (SDOSendFile(ui->eSlaveName->currentText(),eSDODirection::WRITE, ui->eSDOFileNameTo_5->text(), ui->eSDOPasswordTo_5->text(), md5))
     {
         /*if (ui->cbSDOToSlaveMD5_5->isChecked())
         {
@@ -1222,7 +1251,9 @@ void MainWindow::on_bSDOFromSlave_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text(), nullptr))
+    tMD5 md5={0};
+    md5FromFile(filename, md5);
+    if (SDOReadFile(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text(), md5))
     {
         fileToMemo(filename);
     }
@@ -1239,7 +1270,9 @@ void MainWindow::on_bSDOFromSlave_2_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_2->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_2->text(), nullptr))
+    tMD5 md5={0};
+    md5FromFile(filename, md5);
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_2->text(), md5))
     {
         fileToMemo(filename);
     }
@@ -1256,7 +1289,9 @@ void MainWindow::on_bSDOFromSlave_3_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_3->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_3->text(), nullptr))
+    tMD5 md5={0};
+    md5FromFile(filename, md5);
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_3->text(), md5))
     {
         fileToMemo(filename);
     }
@@ -1273,7 +1308,9 @@ void MainWindow::on_bSDOFromSlave_4_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_4->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_4->text(), nullptr))
+    tMD5 md5={0};
+    md5FromFile(filename, md5);
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_4->text(), md5))
     {
         fileToMemo(filename);
     }
@@ -1290,7 +1327,9 @@ void MainWindow::on_bSDOFromSlave_5_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_5->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_5->text(), nullptr))
+    tMD5 md5={0};
+    md5FromFile(filename, md5);
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_5->text(), md5))
     {
         fileToMemo(filename);
     }
@@ -1433,7 +1472,7 @@ void MainWindow::on_bSDOFromSlaveMD5_clicked()
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom->text();
     QFileInfo fi(filename);
     QString fnamemd5=fi.absolutePath()+"/" +fi.completeBaseName()+".md5";
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom->text(), nullptr))
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom->text(), {}))
     {
         fileToMemo(fnamemd5);
     }
@@ -1452,7 +1491,7 @@ void MainWindow::on_bSDOFromSlaveMD5_2_clicked()
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_2->text();
     QFileInfo fi(filename);
     QString fnamemd5=fi.absolutePath()+"/" +fi.completeBaseName()+".md5";
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_2->text(), nullptr))
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_2->text(), {}))
     {
         fileToMemo(fnamemd5);
     }
@@ -1471,7 +1510,7 @@ void MainWindow::on_bSDOFromSlaveMD5_3_clicked()
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_3->text();
     QFileInfo fi(filename);
     QString fnamemd5=fi.absolutePath()+"/" +fi.completeBaseName()+".md5";
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_3->text(), nullptr))
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_3->text(), {}))
     {
         fileToMemo(fnamemd5);
     }
@@ -1490,7 +1529,7 @@ void MainWindow::on_bSDOFromSlaveMD5_4_clicked()
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_4->text();
     QFileInfo fi(filename);
     QString fnamemd5=fi.absolutePath()+"/" +fi.completeBaseName()+".md5";
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_4->text(), nullptr))
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_4->text(), {}))
     {
         fileToMemo(fnamemd5);
     }
@@ -1509,7 +1548,7 @@ void MainWindow::on_bSDOFromSlaveMD5_5_clicked()
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_5->text();
     QFileInfo fi(filename);
     QString fnamemd5=fi.absolutePath()+"/" +fi.completeBaseName()+".md5";
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_5->text(), nullptr))
+    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, fnamemd5, ui->eSDOPasswordFrom_5->text(), {}))
     {
         fileToMemo(fnamemd5);
     }
