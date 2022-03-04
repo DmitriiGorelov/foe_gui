@@ -385,8 +385,6 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
 
 bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password)
 {
-    FileHeader::data headerFile;
-
     bool ok(0);
     int pass=password.toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
