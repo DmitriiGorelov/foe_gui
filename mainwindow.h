@@ -18,8 +18,10 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+bool md5FromFile(const QString& path, tMD5& arr);
+
 class MainWindow : public QMainWindow
-{
+{    
     Q_OBJECT
 
         enum class eActions {
@@ -46,14 +48,12 @@ private:
 
     void SDOSendMD5(const QString& slave, const QString& filePath, const QString& pass);
     bool SDOSendData(QString slave, eSDODirection::E mode, QString filePath, QByteArray Data, QString password);
-    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5);
-    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password, tMD5 md5);
+    bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
+    bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
 
     void fileToMemo(QString path);
 
-    void report(QString text);
-
-    bool md5FromFile(const QString& path, tMD5& arr);
+    void report(QString text);    
 
 private slots:
     void onConnect();
