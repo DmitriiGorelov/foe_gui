@@ -96,8 +96,14 @@ public:
                     IN MMC_SENDSDOEX_IN* pInParam,
                     OUT MMC_SENDSDOEX_OUT* pOutParam,
                     int result = 0);
+    int wrp_MMC_SendSdoCAv1Cmd(
+                    IN MMC_AXIS_REF_HNDL hAxisRef,
+                    IN MMC_SENDSDOCAv1_IN* pInParam,
+                    OUT MMC_SENDSDOCAv1_OUT* pOutParam,
+                    int result = 0);
 
     bool SendSDO(const QString& axisName, tuData& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction);
+    bool SendSDO_CAv1(const QString& axisName, SEND_SDO_DATA_CAv1& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction);
 
     bool ResetCommDiagnostics();
     bool ResetCommStatistics();

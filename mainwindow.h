@@ -50,6 +50,7 @@ private:
     bool SDOSendData(QString slave, eSDODirection::E mode, QString filePath, QByteArray Data, QString password);
     bool SDOSendFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
     bool SDOReadFile(QString slave, eSDODirection::E mode, QString filePath, QString password);
+    bool SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString filePath, QString password);
 
     void fileToMemo(QString path);
 

@@ -53,6 +53,7 @@ bool Controller::Connected()
 
 bool Controller::Simulated()
 {
+    return false;
 #if _DEBUG
     static bool value = true;
 #else
@@ -344,6 +345,38 @@ int Controller::wrp_MMC_SendSdoExCmd(
     }
 }
 
+int Controller::wrp_MMC_SendSdoCAv1Cmd(
+            IN MMC_AXIS_REF_HNDL hAxisRef,
+            IN MMC_SENDSDOCAv1_IN * pInParam,
+            OUT MMC_SENDSDOCAv1_OUT* pOutParam,
+            int result)
+{
+    if (!Connected())
+    {
+        pOutParam->usErrorID = -2000;
+        return -1;
+    }
+    if (!Simulated())
+    {
+        memset(pOutParam, 0, sizeof(*pOutParam));
+        int res = MMC_SendSdoCAv1Cmd(getConnHndl(), static_cast<MMC_AXIS_REF_HNDL>(hAxisRef), pInParam, pOutParam);
+        qInfo() << "IN: gmasref_" << QString::number(hAxisRef) << " Request: ucService " << QString(pInParam->ucService) <<
+            ", usIndex " << QString::number(pInParam->usIndex) << ", ucSubIndex " << QString::number(pInParam->ucSubIndex) <<
+            ", DataSize" << QString::number(pInParam->ucDataLength);
+            //", lData " << QString::number(pInParam->uData.lData) <<
+            //", Data " << QByteArray(reinterpret_cast<char*>(pInParam->uData.pData),80).toHex();
+        qInfo() << "OUT: gmasref_" << QString::number(hAxisRef) << " Reponse: res " << res << ", usErrorID " << QString::number(pOutParam->usErrorID) <<
+            ", usStatus " << QString::number(pOutParam->usStatus) <<
+            ", ucDataLength " <<  QString::number(pOutParam->ucDataLength);
+        return res;
+    }
+    else
+    {
+        //pOutParam->ulValue = ; //used as default value
+        return result;
+    }
+}
+
 
 bool Controller::SendSDO(const QString& axisName, tuData& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction)
 {
@@ -362,7 +395,54 @@ bool Controller::SendSDO(const QString& axisName, tuData& data, unsigned short a
     sin.ucSubIndex = subAddress;
     sin.ucService = direction; // Write
 
-    if (pmas()->wrp_MMC_SendSdoExCmd(ref, &sin, &sout) != 0)
+    if (wrp_MMC_SendSdoExCmd(ref, &sin, &sout) != 0)
+    {
+        if (reportIfError)
+            qInfo() << sout.usErrorID;
+        return false;
+    }
+
+    if (direction==eSDODirection::READ)
+    {
+        memcpy(data.pData, sout.uData.pData, NODE_ASCII_ARRAY_MAX_LENGTH);
+    }
+
+    return true;
+}
+
+bool Controller::SendSDO_CAv1(const QString& axisName, SEND_SDO_DATA_CAv1& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction)
+{
+//    CMMCSingleAxis a1;
+//    a1.InitAxisData("S1", getConnHndl());
+//    SEND_SDO_DATA_CAv1 dataCAv1;
+//    a1.SendSdoUploadCAv1Cmd(&dataCAv1, address, subAddress, 8);
+//    cout << endl << "got array ";
+//    for ( int32_t i = 0 ; i < 194 ; ++i )
+//    {
+//        cout << showbase << hex << (unsigned)dataCAv1.pData[i] << " ";
+//    }
+//    cout << endl;
+//    memcpy(data.pData, dataCAv1.pData, NODE_CAv1_ARRAY_MAX_LENGTH);
+//    return true;
+
+
+    if (!pmas()->Connected())
+        return false;
+
+    int ref = getAxisRef(axisName);
+    if (ref < 0)
+        return false;
+
+    MMC_SENDSDOCAv1_IN sin;
+    MMC_SENDSDOCAv1_OUT sout;
+    memset(&sin, 0, sizeof(sin));
+    sin.uData = data;
+    sin.ucDataLength = dataSize;
+    sin.usIndex = address;
+    sin.ucSubIndex = subAddress;
+    sin.ucService = direction;
+
+    if (wrp_MMC_SendSdoCAv1Cmd(ref, &sin, &sout) != 0)
     {
         if (reportIfError)
             qInfo() << sout.usErrorID;

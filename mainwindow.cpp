@@ -29,83 +29,168 @@ bool md5FromFile(const QString& path, tMD5& arr)
 
 namespace FileHeader
 {
+    typedef BYTE TFXFileVersionHi;
+    typedef BYTE TFXFileVersionLo;
+
+    namespace TFXHWConfigFileType {
+        typedef LongWord T;
+        enum E :T {
+            HWXML = 0,
+            HWCFG = 1,
+            DYCFG = 2,
+            EXCFG = 3,
+        };
+    }
+
+typedef unsigned short FileHeaderFlagType;
 #pragma pack(push,1)
-constexpr unsigned short flagPrint=0x0101; // avoid small/big endianness
-class data
-{
-
-    union {
-        struct {
-            unsigned short flag;
-            char md5[MD5_SIZE];
-            char verHi;
-            char verLo;
-        } content;
-        char c[sizeof(content)];
-    };
-
-public:
-    data() {
-        content.flag=flagPrint;
-        memset(content.md5,0, MD5_SIZE);
-        content.verLo=0;
-        content.verHi=0;
-    }
-
-    QByteArray byteArray()
-    {
-        return QByteArray::fromRawData(c, sizeof(c));
-    }
-
-    void setMD5(tMD5 md5)
-    {
-        memcpy(content.md5, md5.data(), MD5_SIZE);
-    }
-
-    void setMD5FromFile(QString fileName)
-    {
-        tMD5 md5={};
-        md5FromFile(fileName, md5);
-        memcpy(content.md5, md5.data(), MD5_SIZE);
-    }
-
-    void setVersion(const char valueLo, const char valueHi)
-    {
-        content.verHi=valueHi;
-        content.verLo=valueLo;
-    }
-
-    bool isValid()
-    {
-        return content.flag==flagPrint;
-    }
-
-    size_t size()
-    {
-        return sizeof(c);
-    }
-
-    bool matchMD5(const tMD5& md5)
-    {
-        for (size_t i=0; i<MD5_SIZE; i++)
-        if (md5[i]!=content.md5[i])
-            return false;
-        return true;
-    }
-
-    bool set(QByteArray data, size_t len, size_t& rest)
-    {
-        if (len < sizeof(c))
+        constexpr FileHeaderFlagType flagPrint = 0x0101; // avoid small/big endianness
+        class data
         {
-            return false;
-        }
-        memcpy(c, data, sizeof(c));
+            struct tContent {
+                FileHeaderFlagType flag;
+                char md5[MD5_SIZE];
+                TFXFileVersionHi verHi;
+                TFXFileVersionLo verLo;
+                TFXHWConfigFileType::T fileType;
+            } content;
+            /*union {
+                struct tContent {
+                    FileHeaderFlagType flag;
+                    char md5[MD5_SIZE];
+                    TFXFileVersionHi verHi;
+                    TFXFileVersionLo verLo;
+                    TFXHWConfigFileType::T fileType;
+                } content;
+                char c[sizeof(tContent)];
+            };*/
 
-        rest=len-sizeof(c);
+        public:
+            data() {
+                content.flag = flagPrint;
+                memset(content.md5, 0, MD5_SIZE);
+                content.verLo = 0;
+                content.verHi = 0;
+                content.fileType = TFXHWConfigFileType::HWXML;
+            }
 
-        return true;
-    }
-};
+            const char* const cData() const
+            {
+                return (char*)(&content);
+            }
+
+
+            void byteArray(std::unique_ptr<unsigned char[]>& data, size_t& len)
+            {
+                len = size();
+                data.reset(new unsigned char[len]);
+                memcpy(data.get(), &content, len);
+            }
+
+            void setMD5(tMD5 md5)
+            {
+                memcpy(content.md5, md5.data(), MD5_SIZE);
+            }
+
+            bool setMD5FromFile(const std::string& fileName)
+            {
+                bool result(false);
+                tMD5 md5 = {};
+                result = md5FromFile(fileName, md5);
+                memcpy(content.md5, md5.data(), MD5_SIZE);
+                return result;
+            }
+
+
+            void setVersion(TFXFileVersionHi verHi, TFXFileVersionLo verLo)
+            {
+                content.verHi = verHi;
+                content.verLo = verLo;
+            }
+
+            void setFileType(TFXHWConfigFileType::T value)
+            {
+                content.fileType = value;
+            }
+
+            TFXFileVersionHi fileVerHi() const
+            {
+                return content.verHi;
+            }
+
+            TFXFileVersionLo fileVerLo() const
+            {
+                return content.verLo;
+            }
+
+            TFXHWConfigFileType::T fileType() const
+            {
+                return content.fileType;
+            }
+
+            bool isValid() const
+            {
+                return content.flag == flagPrint;
+            }
+
+            size_t size() const
+            {
+                return sizeof(tContent);
+            }
+
+            /*bool matchMD5(const tMD5& md5)
+            {
+                for (size_t i = 0; i<MD5_SIZE; i++)
+                    if (md5[i] != content.md5[i])
+                        return false;
+                return true;
+            }*/
+
+            bool set(unsigned char* data, size_t len, size_t& rest)
+            {
+                if (len < sizeof(tContent))
+                {
+                    return false;
+                }
+                memcpy(&content, data, sizeof(tContent));
+
+                rest = len - sizeof(tContent);
+
+                return isValid();
+            }
+
+            bool set(unsigned char* data, size_t len)
+            {
+                if (len < sizeof(tContent))
+                {
+                    return false;
+                }
+                memcpy(&content, data, sizeof(tContent));
+
+                return isValid();
+            }
+
+            bool operator==(const data& other)
+            {
+                for (size_t i = 0; i < size(); i++)
+                {
+                    if (((unsigned char*)(&content))[i] != ((unsigned char*)&(other.content))[i])
+                        return false;
+                }
+                return true;
+            }
+
+            bool operator^(const data& other)
+            {
+                for (size_t i = offsetof(tContent, md5); i < MD5_SIZE; i++)
+                {
+                    if (((unsigned char*)(&content))[i] != ((unsigned char*)&(other.content))[i])
+                        return false;
+                }
+                return true;
+            }
+
+        };
 
 #pragma pack(pop)
 }
@@ -424,11 +509,11 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
     // -------------------------------- read data
     QByteArray Data;
 
-    int dataShift=4;// beginning of fileData
-    size_t blockSize=4;//NODE_ASCII_ARRAY_MAX_LENGTH-4; // TODO: fix when protocol ready
+    int dataShift = 4;// beginning of fileData
+    size_t blockSize = 4;//NODE_ASCII_ARRAY_MAX_LENGTH-4; // TODO: fix when protocol ready
 
     // read 1st telegram ,where 4bytes of BytesLeft is a fileSize in total:
-    memset(udata.pData,0,NODE_ASCII_ARRAY_MAX_LENGTH);
+    memset(udata.pData, 0, NODE_ASCII_ARRAY_MAX_LENGTH);
     if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, dataShift+blockSize, true, eSDODirection::READ))
     {
         report("SDO Read Body 1st block - ERROR!");
@@ -441,7 +526,7 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
     report("SDO Read Body 1st block. FileSize is: " + QString::number(dataSize));
 
     int toRead(0);
-    for (size_t k = blockSize; k<dataSize; k+=blockSize)
+    for (size_t k = blockSize; k < dataSize; k += blockSize)
     {
         if(!pmas()->SendSDO(slave, udata, alias_Body, subAddressBody, dataShift+blockSize, true, eSDODirection::READ))
         {
@@ -469,6 +554,96 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
 
     return true;
 }
+
+bool MainWindow::SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString filePath, QString password)
+{
+    bool ok(0);
+    int pass=password.toUInt(&ok,16);
+    qInfo()<<"pass:" << pass;
+
+    unsigned short alias_Header=ui->eSDOReadAddressHeader->text().toUInt(&ok,16);
+    unsigned short subAddressHeader=ui->eSDOReadSubAddressHeader->value();
+    unsigned short alias_Body=ui->eSDOReadAddressBody->text().toUInt(&ok,16);
+    unsigned short subAddressBody=ui->eSDOReadSubAddressBody->value();
+
+    tuData udata;
+
+    // -------------------------------- send header
+    QFileInfo fi(filePath);
+    QString fname = fi.fileName();
+    int fsize=fname.size();
+    if (fsize>11)
+    {
+        report("File name too long! " + QString::number(fsize) + " bytes!");
+        return false;
+    }
+
+    memset(udata.pData, 0, NODE_ASCII_ARRAY_MAX_LENGTH);
+    memcpy(udata.pData, &pass, 4);
+    memcpy(udata.pData+4, fname.toStdString().c_str(), fsize);
+    //memcpy(udata.pData+16, &fsize, 4);
+    if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
+    {
+        report("SDO Write Header - ERROR! "+ fname + " " + QString::number(alias_Header));
+        //qDebug()<<QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData),NODE_ASCII_ARRAY_MAX_LENGTH);
+        return false;
+    }
+    else
+    {
+        report("SDO Write Header: OK!");
+    }
+
+    // -------------------------------- read data
+
+    int dataShift = 4;// beginning of fileData
+    size_t blockSize = 4; //NODE_ASCII_ARRAY_MAX_LENGTH - 4; // TODO: NODE_CAv1_ARRAY_MAX_LENGTH
+    SEND_SDO_DATA_CAv1 dataCAv1;
+
+    // read 1st telegram ,where 4bytes of BytesLeft is a fileSize in total:
+    memset(dataCAv1.pData, 0, sizeof (dataCAv1.pData));
+    if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ))
+    {
+        report("SDO Read Body 1st block - ERROR!");
+        return false;
+    }
+
+    size_t dataSize(0);
+    memcpy(&dataSize, dataCAv1.pData, dataShift);
+
+    QByteArray Data;
+    Data += QByteArray::fromRawData(reinterpret_cast<char*>(dataCAv1.pData + dataShift), min(blockSize, dataSize));
+    report("SDO Read Body 1st block. FileSize is: " + QString::number(dataSize));
+
+    int toRead(0);
+    for (size_t k = blockSize; k < dataSize; k += blockSize)
+    {
+        if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ))
+        {
+            report("SDO Read Body ERROR!");
+            return false;
+        }
+        else
+        {
+            toRead = min(static_cast<size_t>(dataSize-k), blockSize);
+            Data += QByteArray::fromRawData(reinterpret_cast<char*>(dataCAv1.pData + dataShift), toRead);
+        }
+        report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(*(int*)udata.pData)+" bytes");
+    }
+    report("SDO FileRead finished: "+QString::number(dataSize)+" bytes OK!");
+
+    //--------------------------------- check file exists
+    QFile CurrentFile(filePath);
+    if(!CurrentFile.open(QIODevice::WriteOnly))
+    {
+        report("Wrong file name! " + filePath);
+        return false;
+    }
+    CurrentFile.write(Data);
+    CurrentFile.close();
+
+    return true;
+}
+
 void MainWindow::onConnect()
 {
     ui->bConnect->setEnabled(false);
@@ -1094,6 +1269,12 @@ void MainWindow::on_bFromSCP_5_clicked()
     SCPFromPMAS(ui->eTmpDir->text(), ui->eFileNameFrom_5->text(), "SCPTemp.txt");
 }
 
+QByteArray byteArray(const char* cData, size_t len)
+{
+    return QByteArray::fromRawData(cData, len);
+}
+
+
 void MainWindow::SDOSendMD5(const QString& slave, const QString& filePath, const QString& pass)
 {
     QFileInfo fi(filePath);
@@ -1108,9 +1289,9 @@ void MainWindow::SDOSendMD5(const QString& slave, const QString& filePath, const
     CurrentFile.close();
 
     FileHeader::data fileHeader;
-    fileHeader.setMD5FromFile(filePath);
+    fileHeader.setMD5FromFile(filePath.toStdString());
     report(fi.completeBaseName()+" MD5 = " + md5s(Data.toStdString()).c_str() );
-    SDOSendData(slave, eSDODirection::WRITE, fnamemd5, fileHeader.byteArray(), pass);
+    SDOSendData(slave, eSDODirection::WRITE, fnamemd5, byteArray(fileHeader.cData(), fileHeader.size()), pass);
 }
 
 void MainWindow::on_bSDOToSlave_clicked()
@@ -1216,7 +1397,8 @@ void MainWindow::on_bSDOFromSlave_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
+    //if (SDOReadFile(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
     {
         fileToMemo(filename);
     }
