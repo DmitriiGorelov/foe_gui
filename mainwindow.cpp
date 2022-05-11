@@ -11,6 +11,7 @@
 
 #include "CallBack.h"
 
+
 bool md5FromFile(const QString& path, tMD5& arr)
 {
     QString filePath=path;
@@ -24,7 +25,7 @@ bool md5FromFile(const QString& path, tMD5& arr)
     QByteArray Data = CurrentFile.readAll();
     CurrentFile.close();
 
-    return md5c(Data.toStdString(), arr);
+    return md5s(Data.toStdString(), arr);
 }
 
 namespace FileHeader
@@ -200,6 +201,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , pi()
     , sdos()
+    , hlp()
     , m_action(eActions::aUnknown)
     , m_ProcessResultFile("")
 {
@@ -407,7 +409,7 @@ bool MainWindow::SDOSendFile(QString slave, eSDODirection::E mode, QString fileP
     unsigned short subAddressBody=ui->eSDOSendSubAddressBody->value();
 
     // used for sending sdo
-    int dataSize;
+    size_t dataSize;
 
     tuData udata;
 
@@ -538,7 +540,7 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
             toRead=min(static_cast<size_t>(dataSize-k), blockSize);
             Data+=QByteArray::fromRawData(reinterpret_cast<char*>(udata.pData+dataShift), toRead);
         }        
-        report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(*(int*)udata.pData)+" bytes");
+        //report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(*(int*)udata.pData)+" bytes");
     }
     report("SDO FileRead finished: "+QString::number(dataSize)+" bytes OK!");
 
@@ -557,6 +559,7 @@ bool MainWindow::SDOReadFile(QString slave, eSDODirection::E mode, QString fileP
 
 bool MainWindow::SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString filePath, QString password)
 {
+    //ui->textEdit->clear();
     bool ok(0);
     int pass=password.toUInt(&ok,16);
     qInfo()<<"pass:" << pass;
@@ -580,7 +583,7 @@ bool MainWindow::SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString f
 
     memset(udata.pData, 0, NODE_ASCII_ARRAY_MAX_LENGTH);
     memcpy(udata.pData, &pass, 4);
-    memcpy(udata.pData+4, fname.toStdString().c_str(), fsize);
+    memcpy(udata.pData + 4, fname.toStdString().c_str(), fsize);
     //memcpy(udata.pData+16, &fsize, 4);
     if(!pmas()->SendSDO(slave, udata, alias_Header, subAddressHeader, 20, true, eSDODirection::WRITE))
     {
@@ -596,12 +599,12 @@ bool MainWindow::SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString f
     // -------------------------------- read data
 
     int dataShift = 4;// beginning of fileData
-    size_t blockSize = 4; //NODE_ASCII_ARRAY_MAX_LENGTH - 4; // TODO: NODE_CAv1_ARRAY_MAX_LENGTH
+    size_t blockSize = 78; // full access 82 - 4;
     SEND_SDO_DATA_CAv1 dataCAv1;
 
     // read 1st telegram ,where 4bytes of BytesLeft is a fileSize in total:
     memset(dataCAv1.pData, 0, sizeof (dataCAv1.pData));
-    if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ))
+    if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ_Array))
     {
         report("SDO Read Body 1st block - ERROR!");
         return false;
@@ -612,22 +615,27 @@ bool MainWindow::SDOReadFileCAv1(QString slave, eSDODirection::E mode, QString f
 
     QByteArray Data;
     Data += QByteArray::fromRawData(reinterpret_cast<char*>(dataCAv1.pData + dataShift), min(blockSize, dataSize));
+    std::string s(Data);
+    qInfo() << s.size();
     report("SDO Read Body 1st block. FileSize is: " + QString::number(dataSize));
 
     int toRead(0);
     for (size_t k = blockSize; k < dataSize; k += blockSize)
     {
-        if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ))
+        if(!pmas()->SendSDO_CAv1(slave, dataCAv1, alias_Body, subAddressBody, dataShift + blockSize, true, eSDODirection::READ_Array))
         {
             report("SDO Read Body ERROR!");
+            //std::string s(Data);
+            //report(s.c_str());
             return false;
         }
         else
         {
-            toRead = min(static_cast<size_t>(dataSize-k), blockSize);
+            toRead = min(static_cast<size_t>(dataSize - k), blockSize);
             Data += QByteArray::fromRawData(reinterpret_cast<char*>(dataCAv1.pData + dataShift), toRead);
         }
-        report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(*(int*)udata.pData)+" bytes");
+        //report("SDO read block: "+QString::number(blockSize)+" bytes, "+QString::number(k+toRead)+" bytes in total, and still expect more "+QString::number(toRead)+" bytes");
+        //QApplication::processEvents();
     }
     report("SDO FileRead finished: "+QString::number(dataSize)+" bytes OK!");
 
@@ -905,7 +913,7 @@ bool MainWindow::SDOSendData(QString slave, eSDODirection::E mode, QString fileP
     unsigned short subAddressBody=ui->eSDOSendSubAddressBody->value();
 
     // used for sending sdo
-    int dataSize;
+    size_t dataSize;
 
     tuData udata;
 
@@ -1397,7 +1405,7 @@ void MainWindow::on_bSDOFromSlave_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom->text();
-    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ_Array, filename, ui->eSDOPasswordFrom->text()))
     //if (SDOReadFile(ui->eSlaveName->currentText(), eSDODirection::READ, filename, ui->eSDOPasswordFrom->text()))
     {
         fileToMemo(filename);
@@ -1415,7 +1423,8 @@ void MainWindow::on_bSDOFromSlave_2_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_2->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_2->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ_Array, filename, ui->eSDOPasswordFrom_2->text()))
+    //if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_2->text()))
     {
         fileToMemo(filename);
     }
@@ -1432,7 +1441,8 @@ void MainWindow::on_bSDOFromSlave_3_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_3->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_3->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ_Array, filename, ui->eSDOPasswordFrom_3->text()))
+    //if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_3->text()))
     {
         fileToMemo(filename);
     }
@@ -1449,7 +1459,8 @@ void MainWindow::on_bSDOFromSlave_4_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_4->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_4->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ_Array, filename, ui->eSDOPasswordFrom_4->text()))
+    //if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_4->text()))
     {
         fileToMemo(filename);
     }
@@ -1466,7 +1477,8 @@ void MainWindow::on_bSDOFromSlave_5_clicked()
     settings.endGroup();
 
     QString filename=ui->eTmpDir->text()+"/"+ui->eSDOFileNameFrom_5->text();
-    if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_5->text()))
+    if (SDOReadFileCAv1(ui->eSlaveName->currentText(), eSDODirection::READ_Array, filename, ui->eSDOPasswordFrom_5->text()))
+    //if (SDOReadFile(ui->eSlaveName->currentText(),eSDODirection::READ, filename, ui->eSDOPasswordFrom_5->text()))
     {
         fileToMemo(filename);
     }
@@ -1690,4 +1702,42 @@ void MainWindow::on_bSDOFromSlaveMD5_5_clicked()
         fileToMemo(fnamemd5);
     }
 }
+
+
+
+void MainWindow::on_eSDOFileNameTo_textChanged(const QString &arg1)
+{
+    ui->eSDOFileNameTo->setToolTip(ui->eSDOFileNameTo->text());
+}
+
+
+void MainWindow::on_eSDOFileNameTo_2_textChanged(const QString &arg1)
+{
+    ui->eSDOFileNameTo_2->setToolTip(ui->eSDOFileNameTo_2->text());
+}
+
+
+void MainWindow::on_eSDOFileNameTo_3_textChanged(const QString &arg1)
+{
+    ui->eSDOFileNameTo_3->setToolTip(ui->eSDOFileNameTo_3->text());
+}
+
+
+void MainWindow::on_eSDOFileNameTo_4_textChanged(const QString &arg1)
+{
+   ui->eSDOFileNameTo_4->setToolTip(ui->eSDOFileNameTo_4->text());
+}
+
+
+void MainWindow::on_eSDOFileNameTo_5_textChanged(const QString &arg1)
+{
+    ui->eSDOFileNameTo_5->setToolTip(ui->eSDOFileNameTo_5->text());
+}
+
+
+void MainWindow::on_actionHelp_triggered()
+{
+    hlp.show();
+}
+
 

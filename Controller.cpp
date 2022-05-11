@@ -412,20 +412,6 @@ bool Controller::SendSDO(const QString& axisName, tuData& data, unsigned short a
 
 bool Controller::SendSDO_CAv1(const QString& axisName, SEND_SDO_DATA_CAv1& data, unsigned short address, unsigned char subAddress, int dataSize, bool reportIfError, eSDODirection::E direction)
 {
-//    CMMCSingleAxis a1;
-//    a1.InitAxisData("S1", getConnHndl());
-//    SEND_SDO_DATA_CAv1 dataCAv1;
-//    a1.SendSdoUploadCAv1Cmd(&dataCAv1, address, subAddress, 8);
-//    cout << endl << "got array ";
-//    for ( int32_t i = 0 ; i < 194 ; ++i )
-//    {
-//        cout << showbase << hex << (unsigned)dataCAv1.pData[i] << " ";
-//    }
-//    cout << endl;
-//    memcpy(data.pData, dataCAv1.pData, NODE_CAv1_ARRAY_MAX_LENGTH);
-//    return true;
-
-
     if (!pmas()->Connected())
         return false;
 
@@ -449,9 +435,9 @@ bool Controller::SendSDO_CAv1(const QString& axisName, SEND_SDO_DATA_CAv1& data,
         return false;
     }
 
-    if (direction==eSDODirection::READ)
+    if (direction == eSDODirection::READ_Array)
     {
-        memcpy(data.pData, sout.uData.pData, NODE_ASCII_ARRAY_MAX_LENGTH);
+        memcpy(data.pData, sout.uData.pData, NODE_CAv1_ARRAY_MAX_LENGTH);
     }
 
     return true;

@@ -5,7 +5,8 @@
 namespace  eSDODirection{
     enum E {
         WRITE = 1,
-        READ = 2
+        READ = 2,
+        READ_Array = 6
     };
 }
 

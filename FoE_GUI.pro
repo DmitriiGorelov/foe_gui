@@ -20,6 +20,7 @@ SOURCES += \
     GmasInternals.cpp \
     IOType.cpp \
     MD5.cpp \
+    formhelp.cpp \
     formpi.cpp \
     formsdo.cpp \
     main.cpp \
@@ -33,11 +34,13 @@ HEADERS += \
     IOType_Internals.h \
     MD5.h \
     enums.h \
+    formhelp.h \
     formpi.h \
     formsdo.h \
     mainwindow.h
 
 FORMS += \
+    formhelp.ui \
     formpi.ui \
     formsdo.ui \
     mainwindow.ui
@@ -47,12 +50,12 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-INCLUDEPATH += "c:\GMAS\includes"
-INCLUDEPATH += "c:\GMAS\includes\CPP"
-INCLUDEPATH += "c:\GMAS\includes\EMBL"
+INCLUDEPATH += "c:\GMAS-294\includes"
+INCLUDEPATH += "c:\GMAS-294\includes\CPP"
+INCLUDEPATH += "c:\GMAS-294\includes\EMBL"
 
-DEPENDPATH += C:/GMAS/libwin32
+DEPENDPATH += C:/GMAS-294/libwin32
 
-unix|win32: LIBS += -LC:/GMAS/libwin32/ -lmmc_lib
-unix|win32: LIBS += -LC:/GMAS/libwin32/ -lmmcpp_lib
+unix|win32: LIBS += -LC:/GMAS-294/libwin32/ -lmmc_lib
+unix|win32: LIBS += -LC:/GMAS-294/libwin32/ -lmmcpp_lib
 

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FormHelp</class>
+ <widget class="QWidget" name="FormHelp">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1104</width>
+    <height>523</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QToolButton" name="btnClose">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>23</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+  </widget>
+  <widget class="QPlainTextEdit" name="plainTextEdit">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>13</x>
+     <y>30</y>
+     <width>1091</width>
+     <height>481</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOn</enum>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContents</enum>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+   <property name="plainText">
+    <string>// READ + WRITE ==========================
+#define PWD_RW_Address		0x0000FFFF	// defines an adress, I2C-adress of I2C-Eeproms with 0x0000bbaa: bb = Bank (0..7),
+					// aa = address (0xA0..0xAE), bb=aa=0xff -&gt; SPI-Eeprom
+#define PWD_RW_Address_SPI 	0x0000FFFF	// using the address mask as address forces usage of THE SPI_Eeprom
+// =======================================
+
+// READ access only ----------------------
+#define PWD_RD_Directory		0x00010000	// reads directory of selected Eeprom (PWD_RW_Address) (old format: send directory header from eeprom as-is. 
+				// New format has changed on 2021-06-24 to name1\nname2\nname3 etc.)
+#define PWD_Defrag_Directory	0x00020000	// remove gaps from directory of selected Eeprom (PWD_RW_Address)
+#define PWD_Defrag_Memory		0x00040000  	// remove gaps from memory of selected Eeprom (PWD_RW_Address)
+#define PWD_RemoveFile		0x00080000	// remove file from selected Eeprom (PWD_RW_Address)
+
+#define PWD_LIST_I2C_EEPROM	0x00100000  	// Info about EEPROM's only (EEPROM is head of module -&gt; identify modules, read configurations, )
+#define PWD_LIST_I2C_LMP92001	0x00200000  	// Info about LMP92001's (list of available devices, requires configuration for DIO Setup ... ! )
+#define PWD_LIST_I2C_LT3966		0x00400000  	// Info about LT3966's (list of available devices ...)
+
+#define PWD_EraseEeprom		0x08000000	// clears directory on selected Eeprom (PWD_RW_Address or PWD for SD access)
+
+#define PWD_RD_EmuMem		0x10000000  	// select an emulated memory instead of real additional I2C-EEproms for read access
+#define PWD_RD_SD          		0x20000000  	// select SD card for read access
+#define PWD_RD_I2Cscan		0x40000000	// read I2C arrays and return a binary file with the content of tagIIC_Scan (unflexible array)
+
+// WRITE access only --------------------
+
+#define PWD_WR_CfG_I2C_LMP92001	0x00200000	// Setup I2C LMP92001's (Configure LMP92001's GPIO, ...)
+#define PWD_WR_CfG_I2C_LT3966 	0x00400000	// Setup I2C LT3966's (...)
+
+#define PWD_WR_IoList		0x01000000  	// transfer I/O list (input list)
+#define PWD_WR_SD          		0x20000000  	// select SD card for write access
+#define PWD_WR_FormatEeprom	0x40000000	// init magic header and size info on selected Eeprom (PWD_RW_Address)
+#define PWD_WR_FWupdate		0x80000000	// writes new firmware (only in BootMode possible, needs BootLoader afterwards)
+
+</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

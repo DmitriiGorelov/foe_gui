@@ -2656,6 +2656,9 @@
                  </item>
                  <item>
                   <widget class="QLineEdit" name="eSDOFileNameTo">
+                   <property name="toolTip">
+                    <string/>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -6339,7 +6342,7 @@
      <x>0</x>
      <y>0</y>
      <width>1069</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
@@ -6353,6 +6356,8 @@
     </property>
     <addaction name="actionProcess_Image"/>
     <addaction name="actionSDO"/>
+    <addaction name="separator"/>
+    <addaction name="actionHelp"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuWindows"/>
@@ -6369,6 +6374,11 @@
    </property>
    <property name="toolTip">
     <string>SDO</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>Help</string>
    </property>
   </action>
  </widget>

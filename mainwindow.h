@@ -13,6 +13,7 @@
 
 #include "formpi.h"
 #include "formsdo.h"
+#include "formhelp.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -190,6 +191,18 @@ private slots:
 
     void on_bSDOFromSlaveMD5_5_clicked();
 
+    void on_eSDOFileNameTo_textChanged(const QString &arg1);
+
+    void on_eSDOFileNameTo_2_textChanged(const QString &arg1);
+
+    void on_eSDOFileNameTo_3_textChanged(const QString &arg1);
+
+    void on_eSDOFileNameTo_4_textChanged(const QString &arg1);
+
+    void on_eSDOFileNameTo_5_textChanged(const QString &arg1);
+
+    void on_actionHelp_triggered();
+
 private:
     void TakeFOEFromSlave(const QString& slave, const QString& fname, const QString& password);
     void TakeSDOromSlave(const QString& slave, const QString& fname, const QString& password);
@@ -201,6 +214,7 @@ private:
 
     FormPI pi;
     QVector<QSharedPointer<FormSDO> > sdos;
+    FormHelp hlp;
 
     eActions m_action;
     QString m_ProcessResultFile;
